@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "405952516189",
+    "project_id": "mysterious-santa",
+    "storage_bucket": "mysterious-santa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:405952516189:android:b07c451d77fc47662efdb4",
+        "android_client_info": {
+          "package_name": "news.afisha.mysterioussanta"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-6ynsQCDgJTTpWqKXpLCrFV6j-vZga8I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
