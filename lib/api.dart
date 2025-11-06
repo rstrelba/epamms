@@ -178,6 +178,14 @@ class API {
         body: json.encode(params), headers: headers);
   }
 
+  static Future getProfile() async {
+    var url = apiUrl + "get-profile.php";
+    debugPrint("URL=$url");
+    Map params = Map();
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: headers);
+  }
+
   static Future putRoom(Map room) async {
     var url = apiUrl + "put-room.php";
     debugPrint("URL= $url");
@@ -192,6 +200,31 @@ class API {
     params['stoken'] = await getToken();
     return http.post(Uri.parse(url),
         body: json.encode(params), headers: headers);
+  }
+
+  static Future getNPArea() async {
+    var url = apiUrl + "get-np-area.php";
+    debugPrint("URL=$url");
+    return http.get(Uri.parse(url));
+  }
+
+  static Future getNPCity(String area) async {
+    //var token = await API.getToken();
+    var url = apiUrl + "get-np-city.php?area=$area";
+    debugPrint("URL=$url");
+    return http.get(Uri.parse(url));
+  }
+
+  static Future getNPWH(String city) async {
+    var url = apiUrl + "get-np-wh.php?city=$city";
+    debugPrint("URL=$url");
+    return http.get(Uri.parse(url));
+  }
+
+  static Future getNPbyRef(String ref) async {
+    var url = apiUrl + "get-np-by-wh.php?wh_ref=$ref";
+    debugPrint("URL=$url");
+    return http.get(Uri.parse(url));
   }
 
   static Future<String> getDeviceName() async {
