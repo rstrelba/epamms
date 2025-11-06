@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,8 +46,6 @@ class _RoomState extends State<RoomUI> {
   }
 
   void _load() async {
-    var response = await API.getLangs();
-    // TODO: обработать response и заполнить langs
     setState(() {
       _isLoading = false;
     });
@@ -125,81 +122,8 @@ class _RoomState extends State<RoomUI> {
               height: 20,
             ),
             Container(
-                child: TypeAheadField(
-              textFieldConfiguration: TextFieldConfiguration(
-                  controller: _myLangController,
-                  decoration: InputDecoration(
-                      //border: OutlineInputBorder(),
-                      labelText: 'My native language')),
-              suggestionsCallback: (pattern) async {
-                var found = [];
-                if (pattern.isEmpty) return found;
-                for (var e in langs) {
-                  String name = e['name'].toString().toLowerCase();
-                  String nativeName = e['nativeName'].toString().toLowerCase();
-                  if (name.contains(pattern.toLowerCase()) ||
-                      nativeName.contains(pattern.toLowerCase())) {
-                    Map m = {};
-                    m['code'] = e['code'];
-                    m['name'] = name;
-                    m['nativeName'] = nativeName;
-                    found.add(m);
-                  }
-                }
-
-                return found;
-              },
-              itemBuilder: (context, suggestion) {
-                var m = suggestion as Map;
-                return ListTile(
-                    title: Text(m['name']), subtitle: Text(m['nativeName']));
-              },
-              onSuggestionSelected: (suggestion) {
-                var m = suggestion as Map;
-                _myLangController.text = m['name'];
-                _myLang = m['code'].toString();
-              },
-            )),
-            Container(
               height: 20,
             ),
-            Container(
-                child: TypeAheadField(
-              textFieldConfiguration: TextFieldConfiguration(
-                  controller: _dictLangController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                      //border: OutlineInputBorder(),
-                      labelText: 'Dictionary language')),
-              suggestionsCallback: (pattern) async {
-                var found = [];
-                if (pattern.isEmpty) return found;
-                for (var e in langs) {
-                  String name = e['name'].toString().toLowerCase();
-                  String nativeName = e['nativeName'].toString().toLowerCase();
-                  if (name.contains(pattern.toLowerCase()) ||
-                      nativeName.contains(pattern.toLowerCase())) {
-                    Map m = {};
-                    m['code'] = e['code'];
-                    m['name'] = name;
-                    m['nativeName'] = nativeName;
-                    found.add(m);
-                  }
-                }
-
-                return found;
-              },
-              itemBuilder: (context, suggestion) {
-                var m = suggestion as Map;
-                return ListTile(
-                    title: Text(m['name']), subtitle: Text(m['nativeName']));
-              },
-              onSuggestionSelected: (suggestion) {
-                var m = suggestion as Map;
-                _dictLangController.text = m['name'];
-                _dictLang = m['code'].toString();
-              },
-            )),
           ],
         ),
       ),
@@ -230,7 +154,8 @@ class _RoomState extends State<RoomUI> {
     dict['dictLang'] = _dictLang;
 
     try {
-      var response = await API.putDict(dict);
+      //@todo implement putDict
+      var response = await API.putVocab(dict);
       if (response.statusCode != 200) {
         throw Exception(API.httpErr + response.statusCode.toString());
       }
@@ -278,7 +203,7 @@ class _RoomState extends State<RoomUI> {
                 Map dict = {};
                 dict['id'] = widget.roomId;
 
-                var response = await API.delDict(dict);
+                var response = await API.putVocab(dict);
                 debugPrint(response.body);
                 var res = jsonDecode(response.body);
               },

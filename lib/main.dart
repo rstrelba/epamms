@@ -1,10 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:get/utils.dart';
-import 'package:myvocab/ui/login.dart';
-import 'package:myvocab/state.dart';
+import 'package:epamms/state.dart';
 import 'package:provider/provider.dart';
 
 import 'api.dart';
@@ -26,7 +26,8 @@ Future<void> _messageHandler(RemoteMessage message) async {
 }
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   bool firebaseInitialized = false;
 
@@ -63,6 +64,7 @@ void main() async {
   try {
     final appState =
         await AppState.create(firebaseEnabled: firebaseInitialized);
+    FlutterNativeSplash.remove();
     runApp(
       ChangeNotifierProvider(
         create: (context) => appState.withContext(context),
@@ -72,6 +74,7 @@ void main() async {
     );
   } catch (e) {
     debugPrint('App initialization error: $e');
+    FlutterNativeSplash.remove();
     runApp(
       MaterialApp(
         home: Scaffold(

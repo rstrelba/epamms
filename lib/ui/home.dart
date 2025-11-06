@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:epamms/api.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -11,8 +12,6 @@ import '../state.dart';
 import 'room.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'api.dart';
 import 'drawer.dart';
 import '../ii.dart';
 
@@ -22,9 +21,9 @@ class HomeUI extends StatefulWidget {
 }
 
 class _HomeState extends State<HomeUI> {
-  bool isLoaded = false;
+  bool _isLoading = true;
   int page = 0;
-  var words = [];
+  var rooms = [];
   ScrollController? scrollCtrl;
   var _sCtrl = TextEditingController();
   String query = "";
@@ -86,19 +85,27 @@ class _HomeState extends State<HomeUI> {
   }
 
   Future _load() async {
-    var state = Provider.of<AppState>(context, listen: false);
-    isLoaded = false;
+    setState(() {
+      _isLoading = true;
+    });
+    final state = Provider.of<AppState>(context, listen: false);
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     sortMode = prefs.getString('sortMode') ?? "last";
-    var response = await API.getVocabs(page, query, state.dictId, sortMode);
-    if (!mounted) return;
-    if (response.statusCode != 200)
-      throw Exception(API.httpErr + response.statusCode.toString());
-    if (page == 0) words.clear();
-    words.addAll(jsonDecode(response.body));
-    setState(() {
-      isLoaded = true;
-    });
+    try {
+      final response = await API.getRooms(page, query, sortMode);
+      if (!mounted) return;
+      if (response.statusCode != 200)
+        throw Exception(API.httpErr + response.statusCode.toString());
+      if (page == 0) rooms.clear();
+      debugPrint('response.body=${response.body}');
+      rooms.addAll(jsonDecode(response.body));
+    } on Exception catch (e) {
+      debugPrint('getRooms error=${e.toString()}');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void onUpdate() {
@@ -120,7 +127,7 @@ class _HomeState extends State<HomeUI> {
 
   @override
   Widget build(BuildContext context) {
-    var state = Provider.of<AppState>(context, listen: false);
+    final state = Provider.of<AppState>(context, listen: false);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? result) {
@@ -217,16 +224,13 @@ class _HomeState extends State<HomeUI> {
         ),
         body: _buildHome(context),
         drawer: DrawerUI(onUpdate: onUpdate),
-        floatingActionButton: Visibility(
-          visible: state.dictId > 0,
-          child: FloatingActionButton(
-            heroTag: "new_voc",
-            onPressed: _newRoom,
-            tooltip: 'New word'.ii(),
-            key: buttonKey,
-            child: const Icon(Icons.add),
-            //backgroundColor: Theme.of(context).primaryColor,
-          ),
+        floatingActionButton: FloatingActionButton(
+          heroTag: "new_room",
+          onPressed: _newRoom,
+          tooltip: 'New room'.ii(),
+          key: buttonKey,
+          child: const Icon(Icons.add),
+          //backgroundColor: Theme.of(context).primaryColor,
         ),
       ),
     );
@@ -253,9 +257,7 @@ class _HomeState extends State<HomeUI> {
   Widget _buildHome(BuildContext context) {
     //
     var state = Provider.of<AppState>(context, listen: false);
-    if (!isLoaded) return const Center(child: CircularProgressIndicator());
-    if (state.dictId == 0)
-      return Center(child: Text('This dictionary is empty yet!'.ii()));
+    if (_isLoading) return const Center(child: CircularProgressIndicator());
     return Container(
       margin: const EdgeInsets.all(5.0),
       child: Column(
@@ -274,7 +276,7 @@ class _HomeState extends State<HomeUI> {
                     query = _sCtrl.text;
                     _load();
                   }),
-                  icon: const Icon(FontAwesomeIcons.search),
+                  icon: const Icon(Icons.search),
                 ),
               ),
               controller: _sCtrl,
@@ -295,19 +297,19 @@ class _HomeState extends State<HomeUI> {
             ),
           ),
           Expanded(
-            child: words.length > 0
+            child: rooms.length > 0
                 ? Scrollbar(
                     child: ListView.builder(
                       controller: scrollCtrl,
-                      itemCount: words.length,
+                      itemCount: rooms.length,
                       itemBuilder: (context, index) {
-                        return _buildWord(context, index);
+                        return _buildRoom(context, index);
                       },
                     ),
                   )
                 : Container(
                     padding: const EdgeInsets.all(50),
-                    child: Text('No words found 😔'.ii(),
+                    child: Text('No rooms found 😔'.ii(),
                         style: const TextStyle(fontSize: 20))),
           ),
         ],
@@ -315,78 +317,45 @@ class _HomeState extends State<HomeUI> {
     );
   }
 
-  Widget _buildWord(BuildContext context, int index) {
-    if (words.length == 0)
-      return Center(child: Card(child: Text('No words found'.ii())));
-
-    var state = Provider.of<AppState>(context, listen: false);
-    var word = words[index];
-    var title = word['title'];
-    var id = word['id'];
-    return Dismissible(
-      key: Key(id.toString()),
-      confirmDismiss: (res) async {
-        bool result = await showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Text('Confirmation'.ii()),
-              content: Text('Do you want to delete this word?'.ii()),
-              actions: <Widget>[
-                new TextButton(
-                  onPressed: () {
-                    Navigator.of(
-                      context,
-                      rootNavigator: true,
-                    ).pop(false); // dismisses only the dialog and returns false
-                  },
-                  child: Text('No'.ii()),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(
-                      context,
-                      rootNavigator: true,
-                    ).pop(true); // dismisses only the dialog and returns true
-                  },
-                  child: Text('Yes'.ii()),
-                ),
+  Widget _buildRoom(BuildContext context, int index) {
+    final state = Provider.of<AppState>(context, listen: false);
+    final room = rooms[index];
+    final title = room['title'];
+    final id = room['id'];
+    final createTs = room['ts'];
+    final desc = room['desc'];
+    final isOwner = room['isOwner'];
+    final clientsCount = room['clientsCount'];
+    final isParticipant = room['isParticipant'];
+    return Card(
+      elevation: 5,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            key: Key(id.toString()),
+            title: Text(title, style: const TextStyle(fontSize: 20)),
+            subtitle: Text(createTs.toString()),
+            trailing: Column(
+              children: [
+                Text(clientsCount.toString()),
+                isOwner
+                    ? Image(image: AssetImage('images/logo1.png'))
+                    : Container(),
               ],
-            );
-          },
-        );
-        return result;
-      },
-      onDismissed: (dir) async {
-        //
-        var item = Map();
-        item["id"] = id;
-        await API.putVocab(item);
-        state.dicts[state.dictId]['count'] -= 1;
-        setState(() {
-          words.removeAt(index);
-        });
-      },
-      child: Card(
-        elevation: 5,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListTile(
-              key: Key(id.toString()),
-              title: Text(title, style: const TextStyle(fontSize: 20)),
-              //subtitle: Text(createTs),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => RoomUI(roomId: id),
-                  ),
-                );
-              },
             ),
-          ],
-        ),
+            leading:
+                Icon(isParticipant ? Icons.handshake_outlined : Icons.close),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (BuildContext context) => RoomUI(roomId: id),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

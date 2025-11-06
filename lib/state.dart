@@ -27,6 +27,7 @@ class AppState with ChangeNotifier {
   static int _currentDict = 0;
 
   int clientId = 0;
+  String clientLogin = '';
   int dictId = 0;
   String dictName = "My dictionary";
   var dicts = [];
@@ -34,7 +35,8 @@ class AppState with ChangeNotifier {
   late AppLinks _appLinks;
   StreamSubscription<Uri>? _linkSubscription;
   ThemeMode _themeMode = ThemeMode.system;
-
+  String clientName = "";
+  bool isExpandedLogin = false;
   ThemeMode get themeMode => _themeMode;
 
   AppState._();
@@ -98,7 +100,7 @@ class AppState with ChangeNotifier {
               ? "iOS"
               : "web";
       appVersion =
-          '${packageInfo.version}.${packageInfo.buildNumber} ($platform)';
+          '${packageInfo.version} (build ${packageInfo.buildNumber} on $platform)';
       API.appVersion = appVersion;
     } catch (e) {
       debugPrint('Error getting package info: $e');
@@ -141,41 +143,16 @@ class AppState with ChangeNotifier {
   }
 
   Future<void> tryToAuth() async {
-    var authResponse = await API.auth();
-    if (authResponse.statusCode == 200) {
-      debugPrint("resp=" + authResponse.body.toString());
-      var res = jsonDecode(authResponse.body);
-      await checkAuthResponse(res);
-    }
-  }
-
-  checkAuthResponse(Map res) async {
-    clientId = res['clientId'];
-    if (clientId > 0) {
-      dicts = res['dicts']; // load dictionaries
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      dictId = prefs.getInt('dictId') ?? 0; // read current dictionary ID
-      var oldDictId = dictId;
-
-      if (!dicts.isEmpty) {
-        if (dictId > 0) {
-          var dict = dicts.firstWhere((item) => item['id'] == dictId,
-              orElse: () => null);
-          if (dict != null) {
-            dictId = dict['id'];
-            dictName = dict['name'];
-          } else {
-            dictId = dicts.first['id'];
-            dictName = dicts.first['name'];
-          }
-        } else {
-          dictId = dicts.first['id'];
-          dictName = dicts.first['name'];
-        }
-        if (oldDictId != dictId) {
-          prefs.setInt('dictId', dictId);
-        }
+    try {
+      final authResponse = await API.auth();
+      if (authResponse.statusCode == 200) {
+        debugPrint("authResponse=" + authResponse.body.toString());
+        final res = jsonDecode(authResponse.body);
+        clientId = res['clientId'];
+        clientLogin = res['login'];
       }
+    } on Exception catch (e) {
+      // TODO
     }
   }
 

@@ -1,12 +1,13 @@
+import 'package:epamms/api.dart';
+import 'package:epamms/ui/profile.dart';
+import 'package:epamms/ui/settings.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'api.dart';
 import '../ii.dart';
 import '../state.dart';
 import 'login.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-//import 'package:url_launcher/url_launcher.dart';
 
 class DrawerUI extends StatefulWidget {
   @override
@@ -51,6 +52,64 @@ class _DrawlerState extends State<DrawerUI>
                     image: AssetImage("images/logo1.png"),
                     fit: BoxFit.fitHeight)),
             child: Container()),
+        state.clientId > 0
+            ? ExpansionTile(
+                key: GlobalKey(),
+                leading: Icon(Icons.lock_open),
+                title: Container(
+                    //height: 20,
+                    child: Text(
+                  state.clientLogin.toLowerCase(),
+                )),
+                initiallyExpanded: state.isExpandedLogin,
+                onExpansionChanged: (val) => state.isExpandedLogin = val,
+                children: [
+                    ListTile(
+                      leading: Icon(Icons.person_outline),
+                      title: Text('Profile'.ii()),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.pushReplacement(context,
+                            MaterialPageRoute(builder: (_) => ProfileUI()));
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.logout_outlined),
+                      title: Text('Logout'.ii()),
+                      onTap: () {
+                        Navigator.pop(context);
+                        //_logout();
+                      },
+                    ),
+                  ])
+            : ListTile(
+                leading: Icon(Icons.person_outline),
+                title: Text(
+                  'Login'.ii(),
+                  style: const TextStyle(fontSize: 20),
+                ),
+                subtitle: Text(
+                  'Login or register to your account'.ii(),
+                  style: const TextStyle(fontSize: 10),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                      context, MaterialPageRoute(builder: (_) => LoginUI()));
+                },
+              ),
+
+        ListTile(
+          leading: Icon(EvaIcons.settings2Outline),
+          title: Text(
+            'Settings'.ii(),
+          ),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+                context, MaterialPageRoute(builder: (_) => SettingsUI()));
+          },
+        ),
 
         ListTile(
             title: Text('Delete account ...'.ii()),
@@ -88,7 +147,6 @@ class _DrawlerState extends State<DrawerUI>
 
               //Navigator.pop(context);
             }),
-
         //Expanded(child: Container()),
         ListTile(
           title: Text(state.getVersion()),
@@ -98,10 +156,5 @@ class _DrawlerState extends State<DrawerUI>
         ),
       ],
     ));
-  }
-
-  Future _saveDict(int _dictId) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setInt("dictId", _dictId);
   }
 }

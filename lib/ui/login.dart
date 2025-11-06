@@ -11,13 +11,13 @@ import 'package:flutter_signin_button/button_list.dart';
 import 'package:flutter_signin_button/button_view.dart';
 import 'package:get/get_utils/src/platform/platform.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:mysterioussanta/state.dart';
-import 'package:mysterioussanta/ui/snack_bar.dart';
+import 'package:epamms/state.dart';
+import 'package:epamms/ui/snack_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
-import 'api.dart';
+import '../api.dart';
 import 'home.dart';
 import '../ii.dart';
 
@@ -74,8 +74,6 @@ class _LoginState extends State<LoginUI> {
 
   @override
   Widget build(BuildContext context) {
-    GlobalKey _key2 = GlobalKey();
-    //executeAfterBuild();
     return Scaffold(
       appBar: AppBar(
         title: Text("Register or login".ii()),
@@ -90,7 +88,7 @@ class _LoginState extends State<LoginUI> {
     );
   }
 
-  Widget _buildTextFields(context) {
+  Widget _buildTextFields(BuildContext context) {
     if (!_isLoaded) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -227,13 +225,19 @@ class _LoginState extends State<LoginUI> {
 
   _doForgetPassword() async {
     //
-    var email = _emailCtrl.text;
-    if (email.length == 0) {
+    var email = _emailCtrl.text.trim();
+    if (email.isEmpty) {
       _showError("Enter your e-mail!".ii());
       return;
     }
 
-    await API.doForgetPassword(email);
+    if (!EmailValidator.validate(email)) {
+      _showError("Enter a valid e-mail!".ii());
+      return;
+    }
+
+    //@todo implement doForgetPassword
+    //await API.doForgetPassword(email);
     _showNote("Wait for the e-mail with your password!".ii());
   }
 
@@ -283,34 +287,29 @@ class _LoginState extends State<LoginUI> {
       });
 
       final state = Provider.of<AppState>(context, listen: false);
-      var response = await API.login(
-          _login, _passwordCtrl.text.trim(), state.getVersion());
+      var response = await API.login(_login, _passwordCtrl.text.trim());
+      if (!mounted) return;
       if (response.statusCode != 200)
-        throw Exception(API.httpErr + response.statusCode.toString());
+        throw Exception("${API.httpErr} status = ${response.statusCode}");
       debugPrint("resp=" + response.body.toString());
       var res = jsonDecode(response.body.toString());
-
-      // тут могут быть 3 варианта
-      // clientId == 0 - это значит что неверно введен логин или пароль
-      // сclientId>0 и dict пустой , надо переходить на WelcomeUI
-      // clientId>0 и dict не пустой , надо переходить на HomeUI
-      state.checkAuthResponse(res);
-
+      state.clientId = res['clientId'];
+      state.clientLogin = res['login'];
       if (state.clientId > 0) {
         // save new token
+        API.sToken = res['stoken'];
         final SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString("token", res['stoken']);
+        await prefs.setString("token", API.sToken);
         await prefs.setString("login", _login);
 
         Navigator.pushReplacement(
-            context, CupertinoPageRoute(builder: (_) => HomeUI()));
+            context, MaterialPageRoute(builder: (_) => HomeUI()));
       } else {
         String err = res['err'].toString();
         err = (err.length > 0) ? err : "Something goes wrong!";
         throw Exception(err);
       }
     } catch (e) {
-      //_showError(e.toString());
       showErrSnackBar(context, e.toString());
       API.log('Login error: $e , $_login');
     } finally {
@@ -356,12 +355,8 @@ class _LoginState extends State<LoginUI> {
       debugPrint("resp=" + response.body.toString());
       var res = jsonDecode(response.body.toString());
 
-      // тут могут быть 3 варианта
-      // clientId == 0 - это значит что неверно введен логин или пароль
-      // сclientId>0 и dict пустой , надо переходить на WelcomeUI
-      // clientId>0 и dict не пустой , надо переходить на HomeUI
       final state = Provider.of<AppState>(context, listen: false);
-      state.checkAuthResponse(res);
+      await state.tryToAuth();
       if (state.clientId > 0) {
         // save new token
         final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -444,15 +439,11 @@ class _LoginState extends State<LoginUI> {
         // сclientId>0 и dict пустой , надо переходить на WelcomeUI
         // clientId>0 и dict не пустой , надо переходить на HomeUI
         final state = Provider.of<AppState>(context, listen: false);
-        state.checkAuthResponse(res);
+        await state.tryToAuth();
         if (state.clientId > 0) {
           // save new token
-          final SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setString("token", res['stoken']);
-          //await prefs.setString("login", _emailCtrl.text);
-
           Navigator.pushReplacement(
-              context, CupertinoPageRoute(builder: (_) => HomeUI()));
+              context, MaterialPageRoute(builder: (_) => HomeUI()));
         } else {
           String err = res['err'].toString();
           err = (err.length > 0) ? err : "Something goes wrong!";
