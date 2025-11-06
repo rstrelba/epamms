@@ -88,7 +88,6 @@ class _HomeState extends State<HomeUI> {
     setState(() {
       _isLoading = true;
     });
-    final state = Provider.of<AppState>(context, listen: false);
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     sortMode = prefs.getString('sortMode') ?? "last";
     try {
@@ -98,6 +97,7 @@ class _HomeState extends State<HomeUI> {
         throw Exception(API.httpErr + response.statusCode.toString());
       if (page == 0) rooms.clear();
       debugPrint('response.body=${response.body}');
+      if (page == 0) rooms.clear();
       rooms.addAll(jsonDecode(response.body));
     } on Exception catch (e) {
       debugPrint('getRooms error=${e.toString()}');
@@ -109,7 +109,6 @@ class _HomeState extends State<HomeUI> {
   }
 
   void onUpdate() {
-    //
     page = 0;
     _load();
   }
@@ -237,16 +236,11 @@ class _HomeState extends State<HomeUI> {
   }
 
   _newRoom() async {
-    var state = Provider.of<AppState>(context, listen: false);
     var res = await Navigator.of(context).push(
-      CupertinoPageRoute(
+      MaterialPageRoute(
         builder: (BuildContext context) => RoomUI(roomId: 0),
       ),
     );
-    var room = Map();
-    room["dictId"] = state.dictId;
-    room["id"] = res["id"];
-    room["title"] = res["word"];
     setState(() {
       //words.insert(0, newVoc);
       page = 0;
@@ -258,61 +252,67 @@ class _HomeState extends State<HomeUI> {
     //
     var state = Provider.of<AppState>(context, listen: false);
     if (_isLoading) return const Center(child: CircularProgressIndicator());
-    return Container(
-      margin: const EdgeInsets.all(5.0),
-      child: Column(
-        children: [
-          Visibility(
-            visible: searchVisible,
-            child: TextField(
-              enableInteractiveSelection: true,
-              autofocus: false,
-              focusNode: sFocus,
-              decoration: InputDecoration(
-                labelText: 'Word to search'.ii(),
-                suffixIcon: IconButton(
-                  onPressed: (() {
-                    page = 0;
-                    query = _sCtrl.text;
-                    _load();
-                  }),
-                  icon: const Icon(Icons.search),
+    return RefreshIndicator(
+      onRefresh: () async {
+        page = 0;
+        _load();
+      },
+      child: Container(
+        margin: const EdgeInsets.all(5.0),
+        child: Column(
+          children: [
+            Visibility(
+              visible: searchVisible,
+              child: TextField(
+                enableInteractiveSelection: true,
+                autofocus: false,
+                focusNode: sFocus,
+                decoration: InputDecoration(
+                  labelText: 'Word to search'.ii(),
+                  suffixIcon: IconButton(
+                    onPressed: (() {
+                      page = 0;
+                      query = _sCtrl.text;
+                      _load();
+                    }),
+                    icon: const Icon(Icons.search),
+                  ),
                 ),
-              ),
-              controller: _sCtrl,
-              onChanged: (String? q) async {
-                //
-                debugPrint('change=$q');
-                if (q!.length >= 2) {
+                controller: _sCtrl,
+                onChanged: (String? q) async {
                   //
+                  debugPrint('change=$q');
+                  if (q!.length >= 2) {
+                    //
+                    query = q;
+                    _load();
+                  }
+                },
+                onSubmitted: ((q) {
+                  page = 0;
                   query = q;
                   _load();
-                }
-              },
-              onSubmitted: ((q) {
-                page = 0;
-                query = q;
-                _load();
-              }),
+                }),
+              ),
             ),
-          ),
-          Expanded(
-            child: rooms.length > 0
-                ? Scrollbar(
-                    child: ListView.builder(
-                      controller: scrollCtrl,
-                      itemCount: rooms.length,
-                      itemBuilder: (context, index) {
-                        return _buildRoom(context, index);
-                      },
-                    ),
-                  )
-                : Container(
-                    padding: const EdgeInsets.all(50),
-                    child: Text('No rooms found 😔'.ii(),
-                        style: const TextStyle(fontSize: 20))),
-          ),
-        ],
+            Expanded(
+              child: rooms.length > 0
+                  ? Scrollbar(
+                      child: ListView.builder(
+                        controller: scrollCtrl,
+                        itemCount: rooms.length,
+                        itemBuilder: (context, index) {
+                          return _buildRoom(context, index);
+                        },
+                      ),
+                    )
+                  : Container(
+                      padding: const EdgeInsets.all(50),
+                      child: Text('No rooms found 😔'.ii(),
+                          style: const TextStyle(fontSize: 20))),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -340,9 +340,7 @@ class _HomeState extends State<HomeUI> {
             trailing: Column(
               children: [
                 Text(clientsCount.toString()),
-                isOwner
-                    ? Image(image: AssetImage('images/logo1.png'))
-                    : Container(),
+                isOwner ? Icon(Icons.person) : Container(),
               ],
             ),
             leading:

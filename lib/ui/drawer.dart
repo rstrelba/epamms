@@ -98,7 +98,7 @@ class _DrawlerState extends State<DrawerUI>
                       context, MaterialPageRoute(builder: (_) => LoginUI()));
                 },
               ),
-
+    
         ListTile(
           leading: Icon(EvaIcons.settings2Outline),
           title: Text(
@@ -110,7 +110,7 @@ class _DrawlerState extends State<DrawerUI>
                 context, MaterialPageRoute(builder: (_) => SettingsUI()));
           },
         ),
-
+    
         ListTile(
             title: Text('Delete account ...'.ii()),
             onTap: () async {
@@ -144,7 +144,7 @@ class _DrawlerState extends State<DrawerUI>
                 },
               );
               //return result;
-
+    
               //Navigator.pop(context);
             }),
         //Expanded(child: Container()),

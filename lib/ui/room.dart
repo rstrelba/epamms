@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:epamms/ui/snack_bar.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,17 +22,18 @@ class RoomUI extends StatefulWidget {
 
 class _RoomState extends State<RoomUI> {
   bool _isLoading = true;
-  late TextEditingController _nameController;
+  late TextEditingController _titleController;
   late TextEditingController _myLangController;
   late TextEditingController _dictLangController;
   String _myLang = '';
   String _dictLang = '';
   List<dynamic> langs = [];
+  int roomId = 0;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController();
+    _titleController = TextEditingController();
     _myLangController = TextEditingController();
     _dictLangController = TextEditingController();
     _load();
@@ -39,16 +41,31 @@ class _RoomState extends State<RoomUI> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _titleController.dispose();
     _myLangController.dispose();
     _dictLangController.dispose();
     super.dispose();
   }
 
   void _load() async {
-    setState(() {
-      _isLoading = false;
-    });
+    try {
+      final response = await API.getRoom(widget.roomId);
+      if (response.statusCode != 200) {
+        throw Exception(API.httpErr + response.statusCode.toString());
+      }
+      if (!mounted) return;
+
+      debugPrint(response.body);
+      final res = jsonDecode(response.body);
+      roomId = res['roomId'];
+      _titleController.text = res['title'];
+    } on Exception catch (e) {
+      //
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void _showErr(String message) {
@@ -114,9 +131,9 @@ class _RoomState extends State<RoomUI> {
           children: [
             TextField(
                 autofocus: true,
-                controller: _nameController,
+                controller: _titleController,
                 decoration: InputDecoration(
-                  labelText: 'Name of dictionary',
+                  labelText: 'Room title'.ii(),
                 )),
             Container(
               height: 20,
@@ -132,57 +149,38 @@ class _RoomState extends State<RoomUI> {
 
   Future _doSave(BuildContext context) async {
     //
-    var state = Provider.of<AppState>(context, listen: false);
+    setState(() {
+      _isLoading = true;
+    });
 
-    if (_nameController.text.isEmpty) {
-      _showErr("Enter a name of your dictionary!");
-      return;
-    }
-    if (_myLang.isEmpty) {
-      _showErr("Choose your native language!");
-      return;
-    }
-    if (_dictLang.isEmpty) {
-      _showErr("Choose your dictionary language!");
+    if (_titleController.text.isEmpty) {
+      showErrSnackBar(context, "Enter a name of your room!".ii());
       return;
     }
     //
-    Map dict = {};
-    dict['id'] = widget.roomId;
-    dict['dictName'] = _nameController.text;
-    dict['myLang'] = _myLang;
-    dict['dictLang'] = _dictLang;
+    Map room = {};
+    room['roomId'] = roomId;
+    room['title'] = _titleController.text;
 
     try {
       //@todo implement putDict
-      var response = await API.putVocab(dict);
+      final response = await API.putRoom(room);
       if (response.statusCode != 200) {
         throw Exception(API.httpErr + response.statusCode.toString());
       }
       debugPrint(response.body);
-      var res = jsonDecode(response.body);
-
-      if (res['id'] > 0) {
-        //state.roomId = res['id'];
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        //prefs.setInt('dictId', state.roomId); // switch to a new dict
-
-        await state.tryToAuth();
-        Navigator.of(context).pop();
-      } else {
-        var err = "Something goes wrong!";
-        if (res['err'].toString().isNotEmpty) err = res['err'].toString();
-        throw Exception(err);
-      }
+      final res = jsonDecode(response.body);
+      debugPrint("PUT ROOM=" + res.toString());
+      if (!mounted) return;
+      showSnackBar(context, "Room saved successfully!".ii());
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (_) => HomeUI()));
     } catch (e) {
-      Fluttertoast.showToast(
-          msg: e.toString(),
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 2,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 16.0);
+      showErrSnackBar(context, e.toString());
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -203,7 +201,7 @@ class _RoomState extends State<RoomUI> {
                 Map dict = {};
                 dict['id'] = widget.roomId;
 
-                var response = await API.putVocab(dict);
+                var response = await API.putRoom(dict);
                 debugPrint(response.body);
                 var res = jsonDecode(response.body);
               },

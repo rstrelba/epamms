@@ -169,12 +169,19 @@ class API {
         body: json.encode(params), headers: headers);
   }
 
-  static Future putVocab(Map word) async {
-    var url = apiUrl + "put-vocab.php";
+  static Future getRoom(int roomId) async {
+    var url = apiUrl + "get-room.php?roomId=$roomId";
+    debugPrint("URL=$url");
+    Map params = Map();
+    params["roomId"] = roomId;
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: headers);
+  }
+
+  static Future putRoom(Map room) async {
+    var url = apiUrl + "put-room.php";
     debugPrint("URL= $url");
-    word['stoken'] = await getToken();
-    debugPrint("MAP= " + word.toString());
-    return http.post(Uri.parse(url), body: json.encode(word), headers: headers);
+    return http.post(Uri.parse(url), body: json.encode(room), headers: headers);
   }
 
   /// @todo implement delClient
