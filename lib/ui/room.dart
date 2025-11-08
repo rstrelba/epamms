@@ -6,7 +6,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api.dart';
 import 'home.dart';
@@ -23,27 +22,24 @@ class RoomUI extends StatefulWidget {
 class _RoomState extends State<RoomUI> {
   bool _isLoading = true;
   late TextEditingController _titleController;
-  late TextEditingController _myLangController;
-  late TextEditingController _dictLangController;
-  String _myLang = '';
-  String _dictLang = '';
+  late TextEditingController _descriptionController;
   List<dynamic> langs = [];
   int roomId = 0;
+  bool isVisible = false;
+  DateTime? exchangeDate;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController();
-    _myLangController = TextEditingController();
-    _dictLangController = TextEditingController();
+    _descriptionController = TextEditingController();
     _load();
   }
 
   @override
   void dispose() {
     _titleController.dispose();
-    _myLangController.dispose();
-    _dictLangController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -58,9 +54,25 @@ class _RoomState extends State<RoomUI> {
       debugPrint(response.body);
       final res = jsonDecode(response.body);
       roomId = res['roomId'];
-      _titleController.text = res['title'];
+      _titleController.text = res['title'] ?? '';
+      _descriptionController.text = res['desc'] ?? '';
+      isVisible = res['isVisible'] ?? false;
+      final exchangeDateStr = res['exchangeDate'];
+      if (exchangeDateStr != null &&
+          exchangeDateStr is String &&
+          exchangeDateStr.isNotEmpty) {
+        final parts = exchangeDateStr.split('.');
+        if (parts.length == 3) {
+          final day = int.tryParse(parts[0]);
+          final month = int.tryParse(parts[1]);
+          final year = int.tryParse(parts[2]);
+          if (day != null && month != null && year != null) {
+            exchangeDate = DateTime(year, month, day);
+          }
+        }
+      }
     } on Exception catch (e) {
-      //
+      showErrSnackBar(context, e.toString());
     } finally {
       setState(() {
         _isLoading = false;
@@ -125,21 +137,87 @@ class _RoomState extends State<RoomUI> {
     return SingleChildScrollView(
       child: Container(
         margin: const EdgeInsets.all(5.0),
+        padding: const EdgeInsets.all(10.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              children: [
+                Transform.translate(
+                  offset: Offset(-12.0, 0),
+                  child: Checkbox(
+                    value: isVisible,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        isVisible = value ?? false;
+                      });
+                    },
+                  ),
+                ),
+                Text('Active'.ii())
+              ],
+            ),
             TextField(
                 autofocus: true,
                 controller: _titleController,
                 decoration: InputDecoration(
                   labelText: 'Room title'.ii(),
+                  isDense: true,
+                  contentPadding:
+                      EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
                 )),
             Container(
               height: 20,
             ),
-            Container(
-              height: 20,
+            TextField(
+                controller: _descriptionController,
+                maxLines: null,
+                minLines: 5,
+                keyboardType: TextInputType.multiline,
+                decoration: InputDecoration(
+                  labelText: 'Description'.ii(),
+                  isDense: true,
+                  contentPadding:
+                      EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+                )),
+            SizedBox(height: 20),
+            Row(
+              children: [
+                Text('Exchange date'.ii(), style: TextStyle(fontSize: 16)),
+                SizedBox(width: 12),
+                Expanded(
+                  child: InkWell(
+                    onTap: () async {
+                      DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: exchangeDate ?? DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          exchangeDate = picked;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding:
+                          EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        exchangeDate == null
+                            ? 'Exchange date'.ii()
+                            : "${exchangeDate!.day.toString().padLeft(2, '0')}.${exchangeDate!.month.toString().padLeft(2, '0')}.${exchangeDate!.year}",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -161,7 +239,17 @@ class _RoomState extends State<RoomUI> {
     Map room = {};
     room['roomId'] = roomId;
     room['title'] = _titleController.text;
+    room['description'] = _descriptionController.text;
 
+    // convert exchangeDate to string only with date (YYYY-MM-DD)
+    if (exchangeDate != null) {
+      String exchangeDateStr =
+          "${exchangeDate!.year.toString().padLeft(4, '0')}-${exchangeDate!.month.toString().padLeft(2, '0')}-${exchangeDate!.day.toString().padLeft(2, '0')}";
+      room['exchangeDate'] = exchangeDateStr;
+    }
+
+    room['isVisible'] = isVisible ? 1 : 0;
+    debugPrint("PUT ROOM=" + room.toString());
     try {
       //@todo implement putDict
       final response = await API.putRoom(room);

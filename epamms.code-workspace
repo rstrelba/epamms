@@ -8,7 +8,7 @@
 		}
 	],
 	"settings": {
-		"intelephense.environment.phpVersion": "8.1.0",
+		"intelephense.environment.phpVersion": "8.2.0",
 		"intelephense.environment.includePaths": []
 	}
 }

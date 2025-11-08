@@ -186,10 +186,32 @@ class API {
         body: json.encode(params), headers: headers);
   }
 
+  static Future getSex() async {
+    var url = apiUrl + "get-sex.php";
+    debugPrint("URL=$url");
+    Map params = Map();
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: headers);
+  }
+
+  static Future getDelService() async {
+    var url = apiUrl + "get-del-service.php";
+    debugPrint("URL=$url");
+    Map params = Map();
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: headers);
+  }
+
   static Future putRoom(Map room) async {
     var url = apiUrl + "put-room.php";
     debugPrint("URL= $url");
     return http.post(Uri.parse(url), body: json.encode(room), headers: headers);
+  }
+
+  static Future putPhoto(Map photo) async {
+    var url = apiUrl + "put-photo.php";
+    debugPrint("URL= $url");
+    return http.post(Uri.parse(url), body: json.encode(photo), headers: headers);
   }
 
   /// @todo implement delClient
@@ -208,21 +230,20 @@ class API {
     return http.get(Uri.parse(url));
   }
 
-  static Future getNPCity(String area) async {
-    //var token = await API.getToken();
+  static Future getNPCity(String? area) async {
     var url = apiUrl + "get-np-city.php?area=$area";
     debugPrint("URL=$url");
     return http.get(Uri.parse(url));
   }
 
-  static Future getNPWH(String city) async {
+  static Future getNPWh(String? city) async {
     var url = apiUrl + "get-np-wh.php?city=$city";
     debugPrint("URL=$url");
     return http.get(Uri.parse(url));
   }
 
   static Future getNPbyRef(String ref) async {
-    var url = apiUrl + "get-np-by-wh.php?wh_ref=$ref";
+    var url = apiUrl + "get-np-by-ref.php?npWh=$ref";
     debugPrint("URL=$url");
     return http.get(Uri.parse(url));
   }
@@ -252,5 +273,12 @@ class API {
     } catch (e) {
       return 'Error getting device info: $e';
     }
+  }
+
+  static Future putProfile(Map profile) async {
+    var url = apiUrl + "put-profile.php";
+    debugPrint("URL=$url");
+    return http.post(Uri.parse(url),
+        body: json.encode(profile), headers: headers);
   }
 }

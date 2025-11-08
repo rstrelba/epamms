@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:epamms/api.dart';
+import 'package:epamms/ui/roomview.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -348,7 +349,7 @@ class _HomeState extends State<HomeUI> {
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (BuildContext context) => RoomUI(roomId: id),
+                  builder: (BuildContext context) => RoomViewUI(roomId: id),
                 ),
               );
             },
