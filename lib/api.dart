@@ -202,6 +202,14 @@ class API {
         body: json.encode(params), headers: headers);
   }
 
+  static Future getWishlist() async {
+    var url = apiUrl + "get-wishlist.php";
+    debugPrint("URL=$url");
+    Map params = Map();
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: headers);
+  }
+
   static Future putRoom(Map room) async {
     var url = apiUrl + "put-room.php";
     debugPrint("URL= $url");
@@ -211,7 +219,56 @@ class API {
   static Future putPhoto(Map photo) async {
     var url = apiUrl + "put-photo.php";
     debugPrint("URL= $url");
-    return http.post(Uri.parse(url), body: json.encode(photo), headers: headers);
+    return http.post(Uri.parse(url),
+        body: json.encode(photo), headers: headers);
+  }
+
+  static Future delPhoto() async {
+    Map params = Map();
+    var url = apiUrl + "del-photo.php";
+    debugPrint("URL= $url");
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: headers);
+  }
+
+  static Future delWishlist(int id) async {
+    Map params = Map();
+    params["id"] = id;
+    var url = apiUrl + "del-wishlist.php";
+    debugPrint("URL= $url");
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: headers);
+  }
+
+  static Future getWish(int id) async {
+    Map params = Map();
+    params["id"] = id;
+    var url = apiUrl + "get-wish.php";
+    debugPrint("URL= $url");
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: headers);
+  }
+
+  static Future getWishListAI(Map params) async {
+    var url = apiUrl + "get-wish-with-ai.php";
+    debugPrint("URL= $url");
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: headers);
+  }
+
+  static Future delWish(int id) async {
+    Map params = Map();
+    params["id"] = id;
+    var url = apiUrl + "del-wish.php";
+    debugPrint("URL= $url");
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: headers);
+  }
+
+  static Future putWish(Map wish) async {
+    var url = apiUrl + "put-wish.php";
+    debugPrint("URL= $url");
+    return http.post(Uri.parse(url), body: json.encode(wish), headers: headers);
   }
 
   /// @todo implement delClient

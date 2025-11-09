@@ -2,11 +2,14 @@ import 'dart:convert';
 
 import 'package:epamms/ii.dart';
 import 'package:epamms/ui/snack_bar.dart';
+import 'package:epamms/ui/wishlist.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:typed_data';
 
 import '../api.dart';
@@ -128,7 +131,7 @@ class _ProfileState extends State<ProfileUI> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextFormField(
-              autofocus: true,
+              //autofocus: true,
               onChanged: (value) {
                 profile['name1'] = value;
               },
@@ -140,7 +143,7 @@ class _ProfileState extends State<ProfileUI> {
                     EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
               )),
           TextFormField(
-              autofocus: true,
+              //autofocus: true,
               onChanged: (value) {
                 profile['name2'] = value;
               },
@@ -184,6 +187,17 @@ class _ProfileState extends State<ProfileUI> {
             onChanged: (value) {
               profile['sex'] = value;
             },
+          ),
+          Text('Year of birth'.ii()),
+          Text('Hobby'.ii()),
+          TextFormField(
+            onChanged: (value) {
+              profile['hobby'] = value;
+            },
+            initialValue: profile['hobby'],
+            decoration: InputDecoration(
+              labelText: 'Hobby'.ii(),
+            ),
           ),
           Text('Delivery service'.ii()),
           DropdownButtonFormField(
@@ -233,6 +247,8 @@ class _ProfileState extends State<ProfileUI> {
           _buildSelfie(context),
           SizedBox(height: 10),
           Text('My wishlist'.ii()),
+          _buildWishlist(context),
+          SizedBox(height: 80),
         ],
       ),
     );
@@ -243,7 +259,7 @@ class _ProfileState extends State<ProfileUI> {
       children: [
         Image.asset('images/ukrpost-logo.png'),
         TextFormField(
-            autofocus: true,
+            //autofocus: true,
             onChanged: (value) {
               profile['postIndex'] = value;
             },
@@ -406,20 +422,59 @@ class _ProfileState extends State<ProfileUI> {
   }
 
   Widget _buildSelfie(context) {
-    return GestureDetector(
-      onTap: _takeSelfie,
-      child: Center(
-        child: ClipOval(
-          child: SizedBox(
-            width: 300,
-            height: 300,
-            child: _selfieImageFile != null
-                ? Image.file(_selfieImageFile!, fit: BoxFit.cover)
-                : (profile['photo'] != null && profile['photo'] == true
-                    ? Image.network(
-                        'https://ms.afisha.news/photo.php?id=${profile['id']}',
-                        fit: BoxFit.cover)
-                    : Image.asset('images/user.png', fit: BoxFit.cover)),
+    return Dismissible(
+      key: Key('selfie'),
+      onDismissed: (direction) {
+        setState(() {});
+      },
+      confirmDismiss: (direction) async {
+        return await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+                  title: Text('Delete selfie?'.ii()),
+                  content:
+                      Text('Are you sure you want to delete your selfie?'.ii()),
+                  actions: [
+                    TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(false);
+                        },
+                        child: Text('Cancel'.ii())),
+                    TextButton(
+                        onPressed: () async {
+                          final photoResponse = await API.delPhoto();
+                          if (photoResponse.statusCode != 200) {
+                            throw Exception(API.httpErr +
+                                photoResponse.statusCode.toString());
+                          }
+                          if (!mounted) return;
+                          showSnackBar(context, 'Photo deleted successfully');
+                          setState(() {
+                            _selfieImageFile = null;
+                            profile['photo'] = false;
+                            profile['selfiePath'] = null;
+                          });
+                          Navigator.of(context).pop(true);
+                        },
+                        child: Text('Delete'.ii())),
+                  ],
+                ));
+      },
+      child: GestureDetector(
+        onTap: _takeSelfie,
+        child: Center(
+          child: ClipOval(
+            child: SizedBox(
+              width: 300,
+              height: 300,
+              child: _selfieImageFile != null
+                  ? Image.file(_selfieImageFile!, fit: BoxFit.cover)
+                  : (profile['photo'] != null && profile['photo'] == true
+                      ? Image.network(
+                          'https://ms.afisha.news/photo.php?id=${profile['id']}',
+                          fit: BoxFit.cover)
+                      : Image.asset('images/user.png', fit: BoxFit.cover)),
+            ),
           ),
         ),
       ),
@@ -490,5 +545,148 @@ class _ProfileState extends State<ProfileUI> {
         showErrSnackBar(context, 'Error taking selfie: ${e.toString()}');
       }
     }
+  }
+
+  Widget _buildWishlist(context) {
+    final wishlist = profile['wishlist'] as List;
+    List<Widget> wl = wishlist.map((item) {
+      Map itemMap = item as Map;
+
+      return Container(
+        margin: EdgeInsets.only(bottom: 10),
+        //padding: EdgeInsets.all(8),
+        child: Dismissible(
+          key: Key('wishlist_${itemMap['id']}'),
+          onDismissed: (direction) {
+            //_delWishlist(itemMap['id']);
+            setState(() {
+              profile['wishlist'].remove(itemMap);
+              profile['wishlist'].add(itemMap);
+            });
+          },
+          confirmDismiss: (direction) async {
+            return await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                      title: Text('Delete your wish?'.ii()),
+                      content: Text(
+                          'Are you sure you want to delete this wish?'.ii()),
+                      actions: [
+                        TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(false);
+                            },
+                            child: Text('Cancel'.ii())),
+                        TextButton(
+                            onPressed: () async {
+                              final wishlistResponse =
+                                  await API.delWishlist(itemMap['id']);
+                              if (wishlistResponse.statusCode != 200) {
+                                throw Exception(API.httpErr +
+                                    wishlistResponse.statusCode.toString());
+                              }
+                              if (!mounted) return;
+                              showSnackBar(
+                                  context, 'Wishlist deleted successfully');
+                              setState(() {
+                                profile['wishlist'].remove(itemMap);
+                              });
+                              Navigator.of(context).pop(true);
+                            },
+                            child: Text('Delete'.ii())),
+                      ],
+                    ));
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () async {
+                    final wish = await Navigator.of(context).push<Map>(
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              WishEditUI(wishId: itemMap['id'])),
+                    );
+                    setState(() {
+                      profile['wishlist'].remove(itemMap);
+                      if (wish != null) profile['wishlist'].add(wish);
+                    });
+                  },
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        itemMap['name'],
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18),
+                        softWrap: true,
+                      ),
+                      if (itemMap['description'].isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.only(top: 4),
+                          child: Text(
+                            itemMap['description'],
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey.shade700),
+                            softWrap: true,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              itemMap['url'].isNotEmpty
+                  ? GestureDetector(
+                      onTap: () {
+                        if (itemMap['url'].isNotEmpty) {
+                          launchUrl(Uri.parse(itemMap['url']),
+                              mode: LaunchMode.externalApplication);
+                        }
+                      },
+                      behavior: HitTestBehavior.translucent,
+                      child: Icon(EvaIcons.link2))
+                  : SizedBox.shrink(),
+            ],
+          ),
+        ),
+      );
+    }).toList();
+    if (profile['wishlist'] == null ||
+        !(profile['wishlist'] is List) ||
+        (profile['wishlist'] as List).isEmpty) {
+      wl.add(
+          Container(child: Center(child: Text('No wishlist found 😭'.ii()))));
+    }
+    wl.add(Container(
+      margin: EdgeInsets.only(top: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ElevatedButton(
+            onPressed: () async {
+              final wish = await Navigator.of(context).push<Map>(
+                MaterialPageRoute(builder: (context) => WishEditUI(wishId: 0)),
+              );
+              if (wish != null) {
+                setState(() {
+                  profile['wishlist'].add(wish);
+                });
+              }
+            },
+            child: Icon(Icons.add),
+          )
+        ],
+      ),
+    ));
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: wl,
+    );
   }
 }
