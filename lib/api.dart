@@ -256,6 +256,12 @@ class API {
         body: json.encode(params), headers: headers);
   }
 
+  static Future getLanguages() async {
+    var url = apiUrl + "lang.json";
+    debugPrint("URL= $url");
+    return http.post(Uri.parse(url), body: json.encode([]), headers: headers);
+  }
+
   static Future delWish(int id) async {
     Map params = Map();
     params["id"] = id;

@@ -222,15 +222,24 @@ class _WishEditState extends State<WishEditUI> {
   _buildAIWish(BuildContext context, int index) {
     return Container(
       padding: EdgeInsets.all(10.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(wishlistAI[index]['name'],
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-          Text(wishlistAI[index]['description'],
-              style: TextStyle(fontSize: 12)),
-        ],
+      child: GestureDetector(
+        onTap: () {
+          wish['name'] = wishlistAI[index]['name'];
+          wish['description'] = wishlistAI[index]['description'];
+          wish['url'] = wishlistAI[index]['url'];
+          _save(context);
+        },
+        behavior: HitTestBehavior.translucent,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(wishlistAI[index]['name'],
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text(wishlistAI[index]['description'],
+                style: TextStyle(fontSize: 12)),
+          ],
+        ),
       ),
     );
   }

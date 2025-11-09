@@ -25,6 +25,7 @@ class _ProfileState extends State<ProfileUI> {
   bool isLoading = true;
   Map profile = {};
   List sex = [];
+  List languages = [];
   List delService = [];
   File? _selfieImageFile;
   final ImagePicker _imagePicker = ImagePicker();
@@ -38,6 +39,7 @@ class _ProfileState extends State<ProfileUI> {
   String? npWh = '';
 
   bool isLoadingNP = false;
+  List wishlist = [];
 
   @override
   void initState() {
@@ -52,6 +54,12 @@ class _ProfileState extends State<ProfileUI> {
 
   _load() async {
     try {
+      final responseLangs = await API.getLanguages();
+      if (responseLangs.statusCode != 200) {
+        throw Exception(API.httpErr + responseLangs.statusCode.toString());
+      }
+      languages = jsonDecode(responseLangs.body);
+
       final responseSex = await API.getSex();
       if (responseSex.statusCode != 200) {
         throw Exception(API.httpErr + responseSex.statusCode.toString());
@@ -78,6 +86,9 @@ class _ProfileState extends State<ProfileUI> {
 
       debugPrint(response.body);
       profile = jsonDecode(response.body);
+      if (profile['wishlist'] != null && profile['wishlist'].isNotEmpty) {
+        wishlist.addAll(profile['wishlist'] as List);
+      }
 
       // Load Nova Poshta data if it exists in the profile
 
@@ -188,8 +199,46 @@ class _ProfileState extends State<ProfileUI> {
               profile['sex'] = value;
             },
           ),
-          Text('Year of birth'.ii()),
-          Text('Hobby'.ii()),
+          DropdownButtonFormField<String>(
+            items: languages
+                .map((item) => DropdownMenuItem<String>(
+                    child: Text(item['nativeName']?.toString() ??
+                        item['name']?.toString() ??
+                        ''),
+                    value: item['code']?.toString()))
+                .where((item) => item.value != null)
+                .toList(),
+            value: languages.any((item) =>
+                    item['code']?.toString() == profile['lang']?.toString())
+                ? profile['lang']?.toString()
+                : null,
+            onChanged: (value) {
+              if (value != null) {
+                profile['lang'] = value;
+              }
+            },
+            decoration: InputDecoration(
+              labelText: 'Language'.ii(),
+              isDense: true,
+              contentPadding: EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+            ),
+          ),
+          SizedBox(height: 10),
+          TextFormField(
+            keyboardType: TextInputType.number,
+            maxLength: 4,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            onChanged: (value) {
+              profile['year'] = value;
+            },
+            initialValue: profile['year'].toString(),
+            decoration: InputDecoration(
+              labelText: 'Year of birth'.ii(),
+              isDense: true,
+              contentPadding: EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+            ),
+          ),
+          SizedBox(height: 10),
           TextFormField(
             onChanged: (value) {
               profile['hobby'] = value;
@@ -237,7 +286,7 @@ class _ProfileState extends State<ProfileUI> {
           if (profile['delService'] == 2) _buildNovaPoshta(context),
           SizedBox(height: 10),
           Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text('Selfie? '.ii()),
@@ -246,8 +295,17 @@ class _ProfileState extends State<ProfileUI> {
           ),
           _buildSelfie(context),
           SizedBox(height: 10),
-          Text('My wishlist'.ii()),
+          Divider(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text('My wishlist'.ii()),
+              Text('🎁', style: TextStyle(fontSize: 28)),
+            ],
+          ),
           _buildWishlist(context),
+          Divider(),
           SizedBox(height: 80),
         ],
       ),
@@ -547,146 +605,146 @@ class _ProfileState extends State<ProfileUI> {
     }
   }
 
-  Widget _buildWishlist(context) {
-    final wishlist = profile['wishlist'] as List;
-    List<Widget> wl = wishlist.map((item) {
-      Map itemMap = item as Map;
-
-      return Container(
-        margin: EdgeInsets.only(bottom: 10),
-        //padding: EdgeInsets.all(8),
-        child: Dismissible(
-          key: Key('wishlist_${itemMap['id']}'),
-          onDismissed: (direction) {
-            //_delWishlist(itemMap['id']);
-            setState(() {
-              profile['wishlist'].remove(itemMap);
-              profile['wishlist'].add(itemMap);
-            });
-          },
-          confirmDismiss: (direction) async {
-            return await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                      title: Text('Delete your wish?'.ii()),
-                      content: Text(
-                          'Are you sure you want to delete this wish?'.ii()),
-                      actions: [
-                        TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(false);
-                            },
-                            child: Text('Cancel'.ii())),
-                        TextButton(
-                            onPressed: () async {
-                              final wishlistResponse =
-                                  await API.delWishlist(itemMap['id']);
-                              if (wishlistResponse.statusCode != 200) {
-                                throw Exception(API.httpErr +
-                                    wishlistResponse.statusCode.toString());
-                              }
-                              if (!mounted) return;
-                              showSnackBar(
-                                  context, 'Wishlist deleted successfully');
-                              setState(() {
-                                profile['wishlist'].remove(itemMap);
-                              });
-                              Navigator.of(context).pop(true);
-                            },
-                            child: Text('Delete'.ii())),
-                      ],
-                    ));
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTap: () async {
-                    final wish = await Navigator.of(context).push<Map>(
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              WishEditUI(wishId: itemMap['id'])),
-                    );
-                    setState(() {
-                      profile['wishlist'].remove(itemMap);
-                      if (wish != null) profile['wishlist'].add(wish);
-                    });
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        itemMap['name'],
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 18),
-                        softWrap: true,
-                      ),
-                      if (itemMap['description'].isNotEmpty)
-                        Padding(
-                          padding: EdgeInsets.only(top: 4),
-                          child: Text(
-                            itemMap['description'],
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.grey.shade700),
-                            softWrap: true,
-                          ),
-                        ),
+  Widget _buildWishlistItem(context, itemMap) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 10),
+      //padding: EdgeInsets.all(8),
+      child: Dismissible(
+        key: Key('wishlist_${itemMap['id']}'),
+        onDismissed: (direction) {
+          //_delWishlist(itemMap['id']);
+          setState(() {
+            wishlist.remove(itemMap);
+            wishlist.add(itemMap);
+          });
+        },
+        confirmDismiss: (direction) async {
+          return await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                    title: Text('Delete your wish?'.ii()),
+                    content:
+                        Text('Are you sure you want to delete this wish?'.ii()),
+                    actions: [
+                      TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(false);
+                          },
+                          child: Text('Cancel'.ii())),
+                      TextButton(
+                          onPressed: () async {
+                            final wishlistResponse =
+                                await API.delWishlist(itemMap['id']);
+                            if (wishlistResponse.statusCode != 200) {
+                              throw Exception(API.httpErr +
+                                  wishlistResponse.statusCode.toString());
+                            }
+                            if (!mounted) return;
+                            showSnackBar(
+                                context, 'Wishlist deleted successfully');
+                            setState(() {
+                              profile['wishlist'].remove(itemMap);
+                            });
+                            Navigator.of(context).pop(true);
+                          },
+                          child: Text('Delete'.ii())),
                     ],
-                  ),
+                  ));
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () async {
+                  final wish = await Navigator.of(context).push<Map>(
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            WishEditUI(wishId: itemMap['id'])),
+                  );
+                  setState(() {
+                    wishlist.remove(itemMap);
+                    if (wish != null) wishlist.add(wish);
+                  });
+                },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      itemMap['name'],
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      softWrap: true,
+                    ),
+                    if (itemMap['description'].isNotEmpty)
+                      Padding(
+                        padding: EdgeInsets.only(top: 4),
+                        child: Text(
+                          itemMap['description'],
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey.shade700),
+                          softWrap: true,
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              itemMap['url'].isNotEmpty
-                  ? GestureDetector(
-                      onTap: () {
-                        if (itemMap['url'].isNotEmpty) {
-                          launchUrl(Uri.parse(itemMap['url']),
-                              mode: LaunchMode.externalApplication);
-                        }
-                      },
-                      behavior: HitTestBehavior.translucent,
-                      child: Icon(EvaIcons.link2))
-                  : SizedBox.shrink(),
-            ],
-          ),
+            ),
+            itemMap['url'].isNotEmpty
+                ? GestureDetector(
+                    onTap: () {
+                      if (itemMap['url'].isNotEmpty) {
+                        launchUrl(Uri.parse(itemMap['url']),
+                            mode: LaunchMode.externalApplication);
+                      }
+                    },
+                    behavior: HitTestBehavior.translucent,
+                    child: Icon(EvaIcons.link2))
+                : SizedBox.shrink(),
+          ],
         ),
-      );
-    }).toList();
-    if (profile['wishlist'] == null ||
-        !(profile['wishlist'] is List) ||
-        (profile['wishlist'] as List).isEmpty) {
-      wl.add(
-          Container(child: Center(child: Text('No wishlist found 😭'.ii()))));
-    }
-    wl.add(Container(
-      margin: EdgeInsets.only(top: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          ElevatedButton(
-            onPressed: () async {
-              final wish = await Navigator.of(context).push<Map>(
-                MaterialPageRoute(builder: (context) => WishEditUI(wishId: 0)),
-              );
-              if (wish != null) {
-                setState(() {
-                  profile['wishlist'].add(wish);
-                });
-              }
-            },
-            child: Icon(Icons.add),
-          )
-        ],
       ),
-    ));
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: wl,
     );
+  }
+
+  Widget _buildWishlist(context) {
+    return Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListView.builder(
+            physics: NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            itemBuilder: (context, index) {
+              return _buildWishlistItem(context, wishlist[index]);
+            },
+            itemCount: wishlist.length,
+          ),
+          Container(
+            margin: EdgeInsets.only(top: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    final wish = await Navigator.of(context).push<Map>(
+                      MaterialPageRoute(
+                          builder: (context) => WishEditUI(wishId: 0)),
+                    );
+                    if (wish != null) {
+                      setState(() {
+                        profile['wishlist'].add(wish);
+                      });
+                    }
+                  },
+                  child: Icon(Icons.add),
+                )
+              ],
+            ),
+          )
+        ]);
   }
 }
