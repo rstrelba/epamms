@@ -615,7 +615,6 @@ class _ProfileState extends State<ProfileUI> {
           //_delWishlist(itemMap['id']);
           setState(() {
             wishlist.remove(itemMap);
-            wishlist.add(itemMap);
           });
         },
         confirmDismiss: (direction) async {
@@ -736,7 +735,7 @@ class _ProfileState extends State<ProfileUI> {
                     );
                     if (wish != null) {
                       setState(() {
-                        profile['wishlist'].add(wish);
+                        wishlist.add(wish);
                       });
                     }
                   },

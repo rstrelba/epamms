@@ -103,15 +103,15 @@ class _WishEditState extends State<WishEditUI> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
           TextFormField(
-              autofocus: true,
+              //autofocus: true,
               onChanged: (value) {
                 wish['name'] = value;
               },
               initialValue: wish['name'],
               maxLines: null,
-              minLines: 5,
+              minLines: 1,
               decoration: InputDecoration(
-                labelText: 'Name'.ii(),
+                labelText: 'Title'.ii(),
                 isDense: true,
                 contentPadding:
                     EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
@@ -122,7 +122,7 @@ class _WishEditState extends State<WishEditUI> {
               },
               initialValue: wish['description'],
               maxLines: null,
-              minLines: 5,
+              minLines: 1,
               keyboardType: TextInputType.multiline,
               decoration: InputDecoration(
                 labelText: 'Description'.ii(),
