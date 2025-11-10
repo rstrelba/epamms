@@ -252,6 +252,15 @@ class API {
         body: json.encode(params), headers: getHeaders());
   }
 
+  static Future getRcpProfile(int id) async {
+    Map params = Map();
+    params["id"] = id;
+    var url = apiUrl + "get-rcp-profile.php";
+    debugPrint("URL= $url");
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: getHeaders());
+  }
+
   static Future getWishListAI(Map params) async {
     var url = apiUrl + "get-wish-with-ai.php";
     debugPrint("URL= $url");
@@ -280,6 +289,13 @@ class API {
     debugPrint("URL= $url");
     return http.post(Uri.parse(url),
         body: json.encode(wish), headers: getHeaders());
+  }
+
+  static Future doEnroll(Map params) async {
+    var url = apiUrl + "do-enroll.php";
+    debugPrint("URL= $url");
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: getHeaders());
   }
 
   /// @todo implement delClient

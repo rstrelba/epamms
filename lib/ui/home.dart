@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:epamms/api.dart';
 import 'package:epamms/ui/roomview.dart';
+import 'package:epamms/ui/snack_bar.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -225,7 +226,7 @@ class _HomeState extends State<HomeUI> {
         drawer: DrawerUI(onUpdate: onUpdate),
         floatingActionButton: FloatingActionButton(
           heroTag: "new_room",
-          onPressed: _newRoom,
+          onPressed: () => _newRoom(context),
           tooltip: 'New room'.ii(),
           key: buttonKey,
           child: const Icon(Icons.add),
@@ -235,7 +236,12 @@ class _HomeState extends State<HomeUI> {
     );
   }
 
-  _newRoom() async {
+  _newRoom(BuildContext context) async {
+    final state = Provider.of<AppState>(context, listen: false);
+    if (state.clientId == 0) {
+      showErrSnackBar(context, 'You are not logged in'.ii());
+      return;
+    }
     var res = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (BuildContext context) => RoomUI(roomId: 0),
@@ -262,7 +268,7 @@ class _HomeState extends State<HomeUI> {
         child: Column(
           children: [
             Visibility(
-              visible: searchVisible,
+              visible: false,
               child: TextField(
                 enableInteractiveSelection: true,
                 autofocus: false,

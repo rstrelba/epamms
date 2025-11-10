@@ -1,11 +1,13 @@
 import 'package:epamms/api.dart';
 import 'package:epamms/ui/home.dart';
 import 'package:epamms/ui/profile.dart';
+import 'package:epamms/ui/roomview.dart';
 import 'package:epamms/ui/settings.dart';
 import 'package:epamms/ui/snack_bar.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 import '../ii.dart';
 import '../state.dart';
 import 'login.dart';
@@ -101,6 +103,31 @@ class _DrawlerState extends State<DrawerUI>
                 },
               ),
 
+        ListTile(
+          leading: Icon(Icons.qr_code),
+          title: Text(
+            'QR code for room'.ii(),
+          ),
+          onTap: () async {
+            final result = await SimpleBarcodeScanner.scanBarcode(context);
+            debugPrint(result.toString());
+            if (result != null) {
+              // parse URL
+              Uri uri = Uri.parse(result);
+              String? idParam = uri.queryParameters['id'];
+              if (idParam == null) {
+                // id not found, do nothing or show error
+                showErrSnackBar(context, 'QR code is not valid');
+                return;
+              }
+              Navigator.pop(context);
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => RoomViewUI(roomId: int.parse(idParam))));
+            }
+          },
+        ),
         ListTile(
           leading: Icon(EvaIcons.settings2Outline),
           title: Text(

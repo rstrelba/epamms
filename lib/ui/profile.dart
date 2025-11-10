@@ -327,6 +327,17 @@ class _ProfileState extends State<ProfileUI> {
               isDense: true,
               contentPadding: EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
             )),
+        TextFormField(
+            //autofocus: true,
+            onChanged: (value) {
+              profile['address'] = value;
+            },
+            initialValue: profile['address'],
+            decoration: InputDecoration(
+              labelText: 'Address'.ii(),
+              isDense: true,
+              contentPadding: EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+            )),
       ],
     );
   }
@@ -676,6 +687,8 @@ class _ProfileState extends State<ProfileUI> {
                       style:
                           TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       softWrap: true,
+                      overflow: TextOverflow.visible,
+                      maxLines: null,
                     ),
                     if (itemMap['description'].isNotEmpty)
                       Padding(

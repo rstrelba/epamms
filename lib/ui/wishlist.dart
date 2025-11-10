@@ -54,9 +54,10 @@ class _WishEditState extends State<WishEditUI> {
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           FloatingActionButton(
+            heroTag: 'delete_wish',
             onPressed: () {
               _delete(context);
             },
@@ -65,6 +66,7 @@ class _WishEditState extends State<WishEditUI> {
           ),
           SizedBox(height: 10),
           FloatingActionButton(
+            heroTag: 'save_wish',
             onPressed: () {
               _save(context);
             },
@@ -202,10 +204,18 @@ class _WishEditState extends State<WishEditUI> {
       Map params = Map();
       params['was'] = was;
       final response = await API.getWishListAI(params);
+      debugPrint(response.body);
       if (response.statusCode != 200) {
         throw Exception(API.httpErr + response.statusCode.toString());
       }
+      final res = jsonDecode(response.body);
+      // Проверяем, что res - это массив, иначе выбрасываем ошибку
+      if (res is! List) {
+        throw Exception('AI: Unexpected backend response');
+      }
+
       wishlistAI = jsonDecode(response.body);
+      debugPrint(wishlistAI.toString());
       wishlistAI.forEach((wish) {
         if (!previousWishesAI.contains(wish['name'])) {
           previousWishesAI.add(wish['name']);
@@ -226,7 +236,7 @@ class _WishEditState extends State<WishEditUI> {
         onTap: () {
           wish['name'] = wishlistAI[index]['name'];
           wish['description'] = wishlistAI[index]['description'];
-          wish['url'] = wishlistAI[index]['url'];
+          wish['url'] = "";
           _save(context);
         },
         behavior: HitTestBehavior.translucent,
