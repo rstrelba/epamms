@@ -20,10 +20,6 @@ import 'state.dart';
 class API {
   static var unescape = HtmlUnescape();
   static const String apiUrl = "https://ms.afisha.news/";
-  static var headers = {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Authorization': 'Bearer $sToken',
-  };
   static String httpErr = "Internet request failed with status ";
 
   static var info = "info";
@@ -36,6 +32,14 @@ class API {
     var bytes = utf8.encode(input);
     var digest = sha512.convert(bytes);
     return digest.toString();
+  }
+
+  static Map<String, String> getHeaders() {
+    //return 'Content-Type: application/json; charset=utf-8\nAuthorization: Bearer $sToken';
+    Map<String, String> headers = Map();
+    headers['Content-Type'] = 'application/json; charset=utf-8';
+    headers['Authorization'] = 'Bearer $sToken';
+    return headers;
   }
 
   static Future<String> getLang() async {
@@ -101,7 +105,7 @@ class API {
     params["fcmToken"] = await getFbToken();
     params["lang"] = await getLang();
     return http.post(Uri.parse(url),
-        body: json.encode(params), headers: headers);
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future login(String login, String password) async {
@@ -114,18 +118,16 @@ class API {
     params["fcmToken"] = await getFbToken();
     params["lang"] = await getLang();
     return http.post(Uri.parse(url),
-        body: json.encode(params), headers: headers);
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future logout() async {
-    await GoogleSignIn.instance.signOut();
+    //await GoogleSignIn.instance.signOut();
 
     var url = apiUrl + "logout.php";
     debugPrint("URL= $url");
-    Map params = Map();
-    params["stoken"] = await getToken();
-    await getToken();
-    return http.post(Uri.parse(url), body: params);
+    return http.post(Uri.parse(url),
+        body: json.encode([]), headers: getHeaders());
   }
 
   static Future log(String log) async {
@@ -158,7 +160,7 @@ class API {
 
   static Future getRooms(int page, String q, String sortMode) async {
     String stoken = await getToken();
-    var url = apiUrl + "get-rooms.php?p=$page&sortMode=$sortMode";
+    var url = apiUrl + "get-rooms.php";
     if (q.length > 0) url += "&q=$q";
     debugPrint("URL=$url");
     Map params = Map();
@@ -166,7 +168,7 @@ class API {
     params["sortMode"] = sortMode;
     if (q.length > 0) params["q"] = q;
     return http.post(Uri.parse(url),
-        body: json.encode(params), headers: headers);
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future getRoom(int roomId) async {
@@ -175,7 +177,7 @@ class API {
     Map params = Map();
     params["roomId"] = roomId;
     return http.post(Uri.parse(url),
-        body: json.encode(params), headers: headers);
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future getProfile() async {
@@ -183,7 +185,7 @@ class API {
     debugPrint("URL=$url");
     Map params = Map();
     return http.post(Uri.parse(url),
-        body: json.encode(params), headers: headers);
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future getSex() async {
@@ -191,7 +193,7 @@ class API {
     debugPrint("URL=$url");
     Map params = Map();
     return http.post(Uri.parse(url),
-        body: json.encode(params), headers: headers);
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future getDelService() async {
@@ -199,7 +201,7 @@ class API {
     debugPrint("URL=$url");
     Map params = Map();
     return http.post(Uri.parse(url),
-        body: json.encode(params), headers: headers);
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future getWishlist() async {
@@ -207,20 +209,21 @@ class API {
     debugPrint("URL=$url");
     Map params = Map();
     return http.post(Uri.parse(url),
-        body: json.encode(params), headers: headers);
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future putRoom(Map room) async {
     var url = apiUrl + "put-room.php";
     debugPrint("URL= $url");
-    return http.post(Uri.parse(url), body: json.encode(room), headers: headers);
+    return http.post(Uri.parse(url),
+        body: json.encode(room), headers: getHeaders());
   }
 
   static Future putPhoto(Map photo) async {
     var url = apiUrl + "put-photo.php";
     debugPrint("URL= $url");
     return http.post(Uri.parse(url),
-        body: json.encode(photo), headers: headers);
+        body: json.encode(photo), headers: getHeaders());
   }
 
   static Future delPhoto() async {
@@ -228,7 +231,7 @@ class API {
     var url = apiUrl + "del-photo.php";
     debugPrint("URL= $url");
     return http.post(Uri.parse(url),
-        body: json.encode(params), headers: headers);
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future delWishlist(int id) async {
@@ -237,7 +240,7 @@ class API {
     var url = apiUrl + "del-wishlist.php";
     debugPrint("URL= $url");
     return http.post(Uri.parse(url),
-        body: json.encode(params), headers: headers);
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future getWish(int id) async {
@@ -246,20 +249,21 @@ class API {
     var url = apiUrl + "get-wish.php";
     debugPrint("URL= $url");
     return http.post(Uri.parse(url),
-        body: json.encode(params), headers: headers);
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future getWishListAI(Map params) async {
     var url = apiUrl + "get-wish-with-ai.php";
     debugPrint("URL= $url");
     return http.post(Uri.parse(url),
-        body: json.encode(params), headers: headers);
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future getLanguages() async {
     var url = apiUrl + "lang.json";
     debugPrint("URL= $url");
-    return http.post(Uri.parse(url), body: json.encode([]), headers: headers);
+    return http.post(Uri.parse(url),
+        body: json.encode([]), headers: getHeaders());
   }
 
   static Future delWish(int id) async {
@@ -268,13 +272,14 @@ class API {
     var url = apiUrl + "del-wish.php";
     debugPrint("URL= $url");
     return http.post(Uri.parse(url),
-        body: json.encode(params), headers: headers);
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future putWish(Map wish) async {
     var url = apiUrl + "put-wish.php";
     debugPrint("URL= $url");
-    return http.post(Uri.parse(url), body: json.encode(wish), headers: headers);
+    return http.post(Uri.parse(url),
+        body: json.encode(wish), headers: getHeaders());
   }
 
   /// @todo implement delClient
@@ -284,7 +289,7 @@ class API {
     debugPrint("URL= $url");
     params['stoken'] = await getToken();
     return http.post(Uri.parse(url),
-        body: json.encode(params), headers: headers);
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future getNPArea() async {
@@ -342,6 +347,6 @@ class API {
     var url = apiUrl + "put-profile.php";
     debugPrint("URL=$url");
     return http.post(Uri.parse(url),
-        body: json.encode(profile), headers: headers);
+        body: json.encode(profile), headers: getHeaders());
   }
 }

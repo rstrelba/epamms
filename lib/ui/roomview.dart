@@ -83,7 +83,6 @@ class _RoomViewState extends State<RoomViewUI> {
                 child: FloatingActionButton(
                   heroTag: 'doEnroll',
                   onPressed: () => _doEnroll(context),
-                  mini: true,
                   elevation: 10,
                   //child: Icon(FontAwesomeIcons.cartPlus),
                   child: Icon(EvaIcons.personAddOutline),
@@ -119,27 +118,48 @@ class _RoomViewState extends State<RoomViewUI> {
     var state = Provider.of<AppState>(context);
 
     return SingleChildScrollView(
-      child: Card(
-        elevation: 10,
+      child: Container(
+        width: double.infinity,
         margin: const EdgeInsets.all(5.0),
-        child: Container(
-          margin: const EdgeInsets.all(5.0),
-          padding: const EdgeInsets.all(10.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              SizedBox(height: 20),
-              Text(description, style: TextStyle(fontSize: 16)),
-              SizedBox(height: 20),
-              Text('Exchange date: ${exchangeDate}',
-                  style: TextStyle(fontSize: 16)),
-              SizedBox(height: 20),
-              Text('Clients count: ${clientsCount}',
-                  style: TextStyle(fontSize: 16)),
-            ],
+        child: Card(
+          elevation: 10,
+          margin: EdgeInsets.zero,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(10.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 2),
+                    Text(description, style: TextStyle(fontSize: 16)),
+                    SizedBox(height: 2),
+                    Text('Exchange date: ${exchangeDate}',
+                        style: TextStyle(fontSize: 16)),
+                    SizedBox(height: 2),
+                    Text('Players count:'.ii() + clientsCount.toString(),
+                        style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (isParticipant)
+                      Image.asset('images/star.png', width: 32, height: 32),
+                    SizedBox(height: 20),
+                    if (isOwner) Icon(Icons.person, size: 20),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

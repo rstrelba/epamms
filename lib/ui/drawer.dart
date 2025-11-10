@@ -1,6 +1,8 @@
 import 'package:epamms/api.dart';
+import 'package:epamms/ui/home.dart';
 import 'package:epamms/ui/profile.dart';
 import 'package:epamms/ui/settings.dart';
+import 'package:epamms/ui/snack_bar.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -76,9 +78,9 @@ class _DrawlerState extends State<DrawerUI>
                     ListTile(
                       leading: Icon(Icons.logout_outlined),
                       title: Text('Logout'.ii()),
-                      onTap: () {
+                      onTap: () async {
+                        await _logout(context);
                         Navigator.pop(context);
-                        //_logout();
                       },
                     ),
                   ])
@@ -98,7 +100,7 @@ class _DrawlerState extends State<DrawerUI>
                       context, MaterialPageRoute(builder: (_) => LoginUI()));
                 },
               ),
-    
+
         ListTile(
           leading: Icon(EvaIcons.settings2Outline),
           title: Text(
@@ -110,7 +112,7 @@ class _DrawlerState extends State<DrawerUI>
                 context, MaterialPageRoute(builder: (_) => SettingsUI()));
           },
         ),
-    
+
         ListTile(
             title: Text('Delete account ...'.ii()),
             onTap: () async {
@@ -144,7 +146,7 @@ class _DrawlerState extends State<DrawerUI>
                 },
               );
               //return result;
-    
+
               //Navigator.pop(context);
             }),
         //Expanded(child: Container()),
@@ -156,5 +158,16 @@ class _DrawlerState extends State<DrawerUI>
         ),
       ],
     ));
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    showSnackBar(context, 'Logged out successfully');
+    final state = Provider.of<AppState>(context, listen: false);
+    state.clientId = 0;
+    await API.logout();
+
+    Navigator.pop(context);
+    Navigator.pushReplacement(
+        context, CupertinoPageRoute(builder: (_) => HomeUI()));
   }
 }

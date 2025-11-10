@@ -23,6 +23,7 @@ class HomeUI extends StatefulWidget {
 
 class _HomeState extends State<HomeUI> {
   bool _isLoading = true;
+  bool noMoreData = false;
   int page = 0;
   var rooms = [];
   ScrollController? scrollCtrl;
@@ -90,7 +91,7 @@ class _HomeState extends State<HomeUI> {
       _isLoading = true;
     });
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    sortMode = prefs.getString('sortMode') ?? "last";
+    sortMode = prefs.getString('sortMode') ?? "all";
     try {
       final response = await API.getRooms(page, query, sortMode);
       if (!mounted) return;
@@ -99,7 +100,9 @@ class _HomeState extends State<HomeUI> {
       if (page == 0) rooms.clear();
       debugPrint('response.body=${response.body}');
       if (page == 0) rooms.clear();
-      rooms.addAll(jsonDecode(response.body));
+      final res = jsonDecode(response.body);
+      rooms.addAll(res);
+      if (rooms.length < 100) noMoreData = true;
     } on Exception catch (e) {
       debugPrint('getRooms error=${e.toString()}');
     } finally {
@@ -120,6 +123,7 @@ class _HomeState extends State<HomeUI> {
     var maxItemPos = scrollCtrl!.position.maxScrollExtent;
 
     if (curItemPos >= maxItemPos) {
+      if (noMoreData) return;
       page++;
       _load();
     }
@@ -202,19 +206,14 @@ class _HomeState extends State<HomeUI> {
                         var list = <PopupMenuEntry<Object>>[];
 
                         list.add(CheckedPopupMenuItem(
-                          checked: sortMode == 'last',
-                          value: 'last',
-                          child: Text('Last'.ii()),
+                          checked: sortMode == 'all',
+                          value: 'all',
+                          child: Text('All rooms'.ii()),
                         ));
                         list.add(CheckedPopupMenuItem(
-                          checked: sortMode == 'first',
-                          value: 'first',
-                          child: Text('First'.ii()),
-                        ));
-                        list.add(CheckedPopupMenuItem(
-                          checked: sortMode == 'lr',
-                          value: 'lr',
-                          child: Text('Last Reminded'.ii()),
+                          checked: sortMode == 'my_rooms',
+                          value: 'my_rooms',
+                          child: Text('My rooms only'.ii()),
                         ));
 
                         return list;
@@ -269,7 +268,7 @@ class _HomeState extends State<HomeUI> {
                 autofocus: false,
                 focusNode: sFocus,
                 decoration: InputDecoration(
-                  labelText: 'Word to search'.ii(),
+                  labelText: 'Room to search (not implemented yet)'.ii(),
                   suffixIcon: IconButton(
                     onPressed: (() {
                       page = 0;
@@ -309,8 +308,10 @@ class _HomeState extends State<HomeUI> {
                     )
                   : Container(
                       padding: const EdgeInsets.all(50),
-                      child: Text('No rooms found 😔'.ii(),
-                          style: const TextStyle(fontSize: 20))),
+                      child: Center(
+                        child: Text('No rooms found 😔'.ii(),
+                            style: const TextStyle(fontSize: 20)),
+                      )),
             ),
           ],
         ),
@@ -319,7 +320,7 @@ class _HomeState extends State<HomeUI> {
   }
 
   Widget _buildRoom(BuildContext context, int index) {
-    final state = Provider.of<AppState>(context, listen: false);
+    //final state = Provider.of<AppState>(context, listen: false);
     final room = rooms[index];
     final title = room['title'];
     final id = room['id'];
@@ -336,16 +337,28 @@ class _HomeState extends State<HomeUI> {
         children: [
           ListTile(
             key: Key(id.toString()),
-            title: Text(title, style: const TextStyle(fontSize: 20)),
-            subtitle: Text(createTs.toString()),
-            trailing: Column(
-              children: [
-                Text(clientsCount.toString()),
-                isOwner ? Icon(Icons.person) : Container(),
-              ],
+            title: Text(title, style: const TextStyle(fontSize: 18)),
+            subtitle: Text(
+                createTs.toString() + ' (${clientsCount.toString()} players)'),
+            trailing: SizedBox(
+              width: 50,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  //Text(clientsCount.toString()),
+                  if (isOwner) Icon(Icons.person, size: 20),
+                ],
+              ),
             ),
-            leading:
-                Icon(isParticipant ? Icons.handshake_outlined : Icons.close),
+            leading: isParticipant
+                ? SizedBox(
+                    width: 40,
+                    height: 40,
+                    child:
+                        Image.asset('images/star.png', width: 32, height: 32),
+                  )
+                : const SizedBox(width: 40),
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(

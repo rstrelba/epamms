@@ -80,22 +80,11 @@ class _RoomState extends State<RoomUI> {
     }
   }
 
-  void _showErr(String message) {
-    Fluttertoast.showToast(
-        msg: message,
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 2,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 16.0);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("New room".ii()),
+          title: Text("Edit room".ii()),
           centerTitle: true,
         ),
         floatingActionButton: Column(
@@ -227,14 +216,15 @@ class _RoomState extends State<RoomUI> {
 
   Future _doSave(BuildContext context) async {
     //
-    setState(() {
-      _isLoading = true;
-    });
-
     if (_titleController.text.isEmpty) {
       showErrSnackBar(context, "Enter a name of your room!".ii());
       return;
     }
+
+    setState(() {
+      _isLoading = true;
+    });
+
     //
     Map room = {};
     room['roomId'] = roomId;
@@ -246,6 +236,8 @@ class _RoomState extends State<RoomUI> {
       String exchangeDateStr =
           "${exchangeDate!.year.toString().padLeft(4, '0')}-${exchangeDate!.month.toString().padLeft(2, '0')}-${exchangeDate!.day.toString().padLeft(2, '0')}";
       room['exchangeDate'] = exchangeDateStr;
+    } else {
+      room['exchangeDate'] = '';
     }
 
     room['isVisible'] = isVisible ? 1 : 0;

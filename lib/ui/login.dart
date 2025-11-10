@@ -297,6 +297,7 @@ class _LoginState extends State<LoginUI> {
       state.clientLogin = res['login'];
       if (state.clientId > 0) {
         // save new token
+        showSnackBar(context, 'Logged in successfully');
         API.sToken = res['stoken'];
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString("token", API.sToken);
