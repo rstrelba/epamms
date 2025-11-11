@@ -1,10 +1,14 @@
 import 'dart:convert';
+import 'dart:ui' as ui;
+import 'dart:typed_data';
 
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:epamms/ui/room.dart';
 import 'package:epamms/ui/snack_bar.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -31,6 +35,7 @@ class _RoomViewState extends State<RoomViewUI> {
   bool isParticipant = false;
   int recipient = 0;
   Map recipientInfo = {};
+  final GlobalKey _qrKey = GlobalKey();
 
   @override
   void initState() {
@@ -387,22 +392,75 @@ class _RoomViewState extends State<RoomViewUI> {
     );
   }
 
+  Future<void> _copyQrToClipboard() async {
+    try {
+      final RenderObject? renderObject =
+          _qrKey.currentContext?.findRenderObject();
+      if (renderObject == null || renderObject is! RenderRepaintBoundary) {
+        showErrSnackBar(context, 'Failed to capture QR code'.ii());
+        return;
+      }
+
+      final RenderRepaintBoundary boundary = renderObject;
+      final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      final ByteData? byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) {
+        showErrSnackBar(context, 'Failed to convert QR code'.ii());
+        return;
+      }
+
+      final Uint8List pngBytes = byteData.buffer.asUint8List();
+
+      // Используем MethodChannel для копирования изображения в буфер обмена
+      const platform = MethodChannel('com.epamms/clipboard');
+      await platform.invokeMethod('copyImage', {'image': pngBytes});
+
+      if (mounted) {
+        showSnackBar(context, 'QR code copied to clipboard'.ii());
+      }
+    } catch (e) {
+      debugPrint('Error copying QR code: $e');
+      if (mounted) {
+        showErrSnackBar(
+            context, 'Failed to copy QR code: ${e.toString()}'.ii());
+      }
+    }
+  }
+
   _buildQR() {
     if (recipient != 0) return SizedBox.shrink();
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.all(5.0),
-      child: Center(
-        child: QrImageView(
-          data: 'https://ms.afisha.news/room.php?id=' + roomId.toString(),
-          version: QrVersions.auto,
-          size: 300.0,
-          //embeddedImage: AssetImage('images/logo1.png'),
-          embeddedImageStyle: QrEmbeddedImageStyle(
-            size: Size(32.0, 32.0),
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          margin: const EdgeInsets.all(5.0),
+          child: Center(
+            child: GestureDetector(
+              onTap: _copyQrToClipboard,
+              child: RepaintBoundary(
+                key: _qrKey,
+                child: QrImageView(
+                  data:
+                      'https://ms.afisha.news/room.php?id=' + roomId.toString(),
+                  version: QrVersions.auto,
+                  backgroundColor: Colors.white,
+                  size: 300.0,
+                  embeddedImageStyle: QrEmbeddedImageStyle(
+                    size: Size(32.0, 32.0),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
-      ),
+        SizedBox(height: 10),
+        Text('Tap QR code to copy to clipboard'.ii(),
+            style: TextStyle(fontSize: 16)),
+        SizedBox(height: 5),
+        Text('Scan QR code to join the game'.ii(),
+            style: TextStyle(fontSize: 14, color: Colors.grey)),
+      ],
     );
   }
 }

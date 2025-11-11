@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:epamms/api.dart';
 import 'package:epamms/ui/home.dart';
 import 'package:epamms/ui/profile.dart';
@@ -28,10 +30,45 @@ class _DrawlerState extends State<DrawerUI>
   String version = '';
   String code = '';
 
+  final List<String> frames = [
+    'images/logo-an-1.png',
+    'images/logo-an-2.png',
+    'images/logo-an-3.png',
+  ];
+
+  int frameIndex = 0;
+  late Timer timer;
+
   @override
   void initState() {
     super.initState();
     _load();
+    _startBlinkingLoop();
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
+  }
+
+  void _startBlinkingLoop() {
+    timer = Timer.periodic(const Duration(seconds: 5), (t) {
+      // Моргаем 3 кадра по 100 мс
+      for (int i = 0; i < frames.length; i++) {
+        Future.delayed(Duration(milliseconds: 100 * i), () {
+          if (mounted) {
+            setState(() => frameIndex = i);
+          }
+        });
+      }
+      // Возврат к первому кадру после моргания
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          setState(() => frameIndex = 0);
+        }
+      });
+    });
   }
 
   Future _load() async {
@@ -46,16 +83,19 @@ class _DrawlerState extends State<DrawerUI>
       padding: EdgeInsets.zero,
       //shrinkWrap: true,
       children: [
-        Container(
-            height: 200,
-            decoration: const BoxDecoration(
-                //border: Border(                  bottom: Divider.createBorderSide(context, color: Colors.white, width: 0.0),                ),
-                boxShadow: [],
-                //color: Colors.white,
-                image: DecorationImage(
-                    image: AssetImage("images/logo1.png"),
-                    fit: BoxFit.fitHeight)),
-            child: Container()),
+        AnimatedSwitcher(
+          duration: const Duration(seconds: 5),
+          child: Container(
+              height: 200,
+              decoration: BoxDecoration(
+                  //border: Border(                  bottom: Divider.createBorderSide(context, color: Colors.white, width: 0.0),                ),
+                  boxShadow: const [],
+                  //color: Colors.white,
+                  image: DecorationImage(
+                      image: AssetImage(frames[frameIndex]),
+                      fit: BoxFit.fitHeight)),
+              child: Container()),
+        ),
         state.clientId > 0
             ? ExpansionTile(
                 key: GlobalKey(),
@@ -73,7 +113,7 @@ class _DrawlerState extends State<DrawerUI>
                       title: Text('Profile'.ii()),
                       onTap: () {
                         Navigator.pop(context);
-                        Navigator.pushReplacement(context,
+                        Navigator.push(context,
                             MaterialPageRoute(builder: (_) => ProfileUI()));
                       },
                     ),
