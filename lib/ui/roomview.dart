@@ -97,6 +97,7 @@ class _RoomViewState extends State<RoomViewUI> {
           title: Text("Game Room".ii()),
           centerTitle: true,
         ),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         floatingActionButton: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -374,7 +375,12 @@ class _RoomViewState extends State<RoomViewUI> {
                             child: Text(
                               itemMap['description'],
                               style: TextStyle(
-                                  fontSize: 12, color: Colors.grey.shade700),
+                                fontSize: 12,
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.grey[400]
+                                    : Colors.grey.shade700,
+                              ),
                               softWrap: true,
                             ),
                           ),
@@ -453,7 +459,14 @@ class _RoomViewState extends State<RoomViewUI> {
                   data:
                       'https://ms.afisha.news/room.php?id=' + roomId.toString(),
                   version: QrVersions.auto,
-                  backgroundColor: Colors.white,
+                  backgroundColor:
+                      Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.white,
+                  foregroundColor:
+                      Theme.of(context).brightness == Brightness.dark
+                          ? Colors.black
+                          : Colors.black,
                   size: 300.0,
                   embeddedImageStyle: QrEmbeddedImageStyle(
                     size: Size(32.0, 32.0),
@@ -468,7 +481,12 @@ class _RoomViewState extends State<RoomViewUI> {
             style: TextStyle(fontSize: 16)),
         SizedBox(height: 5),
         Text('Scan QR code to join the game'.ii(),
-            style: TextStyle(fontSize: 14, color: Colors.grey)),
+            style: TextStyle(
+              fontSize: 14,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[400]
+                  : Colors.grey,
+            )),
       ],
     );
   }

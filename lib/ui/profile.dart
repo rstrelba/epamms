@@ -115,15 +115,6 @@ class _ProfileState extends State<ProfileUI> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => HomeUI()),
-            );
-          },
-        ),
         title: Text("Profile".ii()),
       ),
       floatingActionButton: Visibility(

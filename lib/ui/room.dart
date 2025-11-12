@@ -98,6 +98,7 @@ class _RoomState extends State<RoomUI> {
           title: Text("Edit room".ii()),
           centerTitle: true,
         ),
+        backgroundColor: Colors.transparent,
         floatingActionButton: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -358,6 +359,7 @@ class _RoomState extends State<RoomUI> {
         return Dismissible(
           key: Key(recipient['id'].toString()),
           onDismissed: (direction) {
+            _doDelFromRoom(context, recipient['id']);
             setState(() {
               recipients.removeAt(index);
             });
@@ -370,6 +372,16 @@ class _RoomState extends State<RoomUI> {
                       content: Text(
                           'Are you sure you want to delete this recipient?'
                               .ii()),
+                      actions: <Widget>[
+                        ElevatedButton(
+                          child: Text('Yes'),
+                          onPressed: () => Navigator.pop(context, true),
+                        ),
+                        ElevatedButton(
+                          child: Text('No'),
+                          onPressed: () => Navigator.pop(context, false),
+                        ),
+                      ],
                     ));
           },
           child: GestureDetector(
@@ -422,6 +434,21 @@ class _RoomState extends State<RoomUI> {
       final res = jsonDecode(response.body);
       debugPrint("DO RANDOMIZE=" + res.toString());
       showSnackBar(context, "Room randomized successfully!".ii());
+    } catch (e) {
+      showErrSnackBar(context, e.toString());
+    }
+  }
+
+  void _doDelFromRoom(BuildContext context, recipient) async {
+    try {
+      final response = await API.delFromRoom(roomId, recipient);
+      if (response.statusCode != 200) {
+        throw Exception(API.httpErr + response.statusCode.toString());
+      }
+      debugPrint(response.body);
+      final res = jsonDecode(response.body);
+      debugPrint("DEL FROM ROOM=" + res.toString());
+      showSnackBar(context, "Recipient deleted successfully!".ii());
     } catch (e) {
       showErrSnackBar(context, e.toString());
     }

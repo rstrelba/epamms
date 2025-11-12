@@ -16,7 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // login
 class API {
   static var unescape = HtmlUnescape();
-  static const String apiUrl = "https://ms.afisha.news/";
+  static const String apiUrl = "https://mysterioussanta.afisha.news/";
   static String httpErr = "Internet request failed with status ";
 
   static var info = "info";
@@ -279,6 +279,16 @@ class API {
     Map params = Map();
     params["roomId"] = id;
     var url = apiUrl + "do-randomize.php";
+    debugPrint("URL= $url");
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: getHeaders());
+  }
+
+  static Future delFromRoom(int roomId, int userId) async {
+    Map params = Map();
+    params["roomId"] = roomId;
+    params["userId"] = userId;
+    var url = apiUrl + "del-from-room.php";
     debugPrint("URL= $url");
     return http.post(Uri.parse(url),
         body: json.encode(params), headers: getHeaders());

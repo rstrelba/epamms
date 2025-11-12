@@ -81,6 +81,11 @@ class _HomeState extends State<HomeUI> {
       //
       try {
         _load();
+
+        // Проверяем и обрабатываем initialPush и initialUri после загрузки
+        var state = Provider.of<AppState>(context, listen: false);
+        state.checkAndHandleInitialPush();
+        state.checkAndHandleInitialUri();
       } catch (e) {
         await API.log("initFB ex=${e.toString()}");
       }
@@ -99,9 +104,11 @@ class _HomeState extends State<HomeUI> {
       if (!mounted) return;
       if (response.statusCode != 200)
         throw Exception(API.httpErr + response.statusCode.toString());
-      if (page == 0) rooms.clear();
+      if (page == 0) {
+        rooms.clear();
+        noMoreData = false;
+      }
       debugPrint('response.body=${response.body}');
-      if (page == 0) rooms.clear();
       final res = jsonDecode(response.body);
       rooms.addAll(res);
       if (rooms.length < 100) noMoreData = true;
@@ -215,7 +222,12 @@ class _HomeState extends State<HomeUI> {
                         list.add(CheckedPopupMenuItem(
                           checked: sortMode == 'my_rooms',
                           value: 'my_rooms',
-                          child: Text('My rooms only'.ii()),
+                          child: Text('Rooms I participate in'.ii()),
+                        ));
+                        list.add(CheckedPopupMenuItem(
+                          checked: sortMode == 'own_rooms',
+                          value: 'own_rooms',
+                          child: Text('Rooms I own'.ii()),
                         ));
 
                         return list;
@@ -259,52 +271,54 @@ class _HomeState extends State<HomeUI> {
     //
     var state = Provider.of<AppState>(context, listen: false);
     if (_isLoading) return const Center(child: CircularProgressIndicator());
-    return RefreshIndicator(
-      onRefresh: () async {
-        page = 0;
-        _load();
-      },
-      child: Container(
-        margin: const EdgeInsets.all(5.0),
-        child: Column(
-          children: [
-            Visibility(
-              visible: false,
-              child: TextField(
-                enableInteractiveSelection: true,
-                autofocus: false,
-                focusNode: sFocus,
-                decoration: InputDecoration(
-                  labelText: 'Room to search (not implemented yet)'.ii(),
-                  suffixIcon: IconButton(
-                    onPressed: (() {
-                      page = 0;
-                      query = _sCtrl.text;
-                      _load();
-                    }),
-                    icon: const Icon(Icons.search),
-                  ),
-                ),
-                controller: _sCtrl,
-                onChanged: (String? q) async {
-                  //
-                  debugPrint('change=$q');
-                  if (q!.length >= 2) {
-                    //
-                    query = q;
+    return Container(
+      margin: const EdgeInsets.all(5.0),
+      child: Column(
+        children: [
+          Visibility(
+            visible: false,
+            child: TextField(
+              enableInteractiveSelection: true,
+              autofocus: false,
+              focusNode: sFocus,
+              decoration: InputDecoration(
+                labelText: 'Room to search (not implemented yet)'.ii(),
+                suffixIcon: IconButton(
+                  onPressed: (() {
+                    page = 0;
+                    query = _sCtrl.text;
                     _load();
-                  }
-                },
-                onSubmitted: ((q) {
-                  page = 0;
+                  }),
+                  icon: const Icon(Icons.search),
+                ),
+              ),
+              controller: _sCtrl,
+              onChanged: (String? q) async {
+                //
+                debugPrint('change=$q');
+                if (q!.length >= 2) {
+                  //
                   query = q;
                   _load();
-                }),
-              ),
+                }
+              },
+              onSubmitted: ((q) {
+                page = 0;
+                query = q;
+                _load();
+              }),
             ),
-            Expanded(
-              child: rooms.length > 0
-                  ? Scrollbar(
+          ),
+          Expanded(
+            child: rooms.length > 0
+                ? RefreshIndicator(
+                    onRefresh: () async {
+                      page = 0;
+                      debugPrint('onRefresh');
+                      noMoreData = false;
+                      await _load();
+                    },
+                    child: Scrollbar(
                       child: ListView.builder(
                         controller: scrollCtrl,
                         itemCount: rooms.length,
@@ -312,16 +326,16 @@ class _HomeState extends State<HomeUI> {
                           return _buildRoom(context, index);
                         },
                       ),
-                    )
-                  : Container(
-                      padding: const EdgeInsets.all(50),
-                      child: Center(
-                        child: Text('No rooms found 😔'.ii(),
-                            style: const TextStyle(fontSize: 20)),
-                      )),
-            ),
-          ],
-        ),
+                    ),
+                  )
+                : Container(
+                    padding: const EdgeInsets.all(50),
+                    child: Center(
+                      child: Text('No rooms found 😔'.ii(),
+                          style: const TextStyle(fontSize: 20)),
+                    )),
+          ),
+        ],
       ),
     );
   }
@@ -336,6 +350,7 @@ class _HomeState extends State<HomeUI> {
     final isOwner = room['isOwner'];
     final clientsCount = room['clientsCount'];
     final isParticipant = room['isParticipant'];
+    final randomizeTs = room['randomizeTs'];
     return Card(
       elevation: 5,
       child: Column(
@@ -348,13 +363,16 @@ class _HomeState extends State<HomeUI> {
             subtitle: Text(
                 createTs.toString() + ' (${clientsCount.toString()} players)'),
             trailing: SizedBox(
-              width: 50,
+              width: 80,
+              height: 80,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   //Text(clientsCount.toString()),
                   if (isOwner) Icon(Icons.person, size: 20),
+                  if (randomizeTs != null)
+                    Image.asset('images/santa.png', width: 32, height: 32),
                 ],
               ),
             ),

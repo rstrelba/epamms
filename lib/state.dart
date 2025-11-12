@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:app_links/app_links.dart';
+import 'package:epamms/ui/room.dart';
+import 'package:epamms/ui/roomview.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -107,9 +109,6 @@ class AppState with ChangeNotifier {
       appVersion = '1.0.0 (unknown)';
     }
 
-    // Запрос разрешений на уведомления произойдёт в _setupFirebaseMessaging()
-
-    // Firebase уже инициализирован в main.dart, только настраиваем messaging
     if (firebaseEnabled) {
       try {
         if (!GetPlatform.isWeb) await _setupFirebaseMessaging();
@@ -215,8 +214,8 @@ class AppState with ChangeNotifier {
     try {
       FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-      // iOS - показывает диалог разрешений
-      // Android 13+ (SDK 33+) - также показывает диалог разрешений
+      // iOS - show permission dialog
+      // Android 13+ (SDK 33+) - also shows permission dialog
       NotificationSettings settings = await messaging.requestPermission(
         alert: true,
         announcement: false,
@@ -258,7 +257,9 @@ class AppState with ChangeNotifier {
           debugPrint(
               'FirebaseMessaging.getInitialMessage ${message.data.toString()}');
           initialPush = message.data["url"];
-          //handleRawMessage(message);
+          debugPrint('Saved initialPush: $initialPush');
+          // Не обрабатываем сразу, так как UI еще не готов
+          // Обработка будет в checkAndHandleInitialPush()
         }
       });
     } catch (e) {
@@ -366,20 +367,66 @@ class AppState with ChangeNotifier {
   }
 
   void handleMessage(String? url) async {
-    var params = url!.split("/");
-    if (params[0] == "word") {
+    if (url == null || url.isEmpty) return;
+
+    var params = url.split("/");
+    if (params[0] == "room") {
       //
       try {
         debugPrint("handleMessage params=$url");
         int? id = int.tryParse(params[1]);
-        //Get.to(() => WordUI(id: id ?? 0, word: ''), preventDuplicates: false);
+
+        // Используем Navigator вместо Get.to для правильной передачи темы
+        if (Get.context != null) {
+          Navigator.of(Get.context!).push(
+            MaterialPageRoute(
+              builder: (context) => RoomViewUI(roomId: id ?? 0),
+            ),
+          );
+        } else {
+          // Fallback на Get.to если контекст недоступен
+          Get.to(() => RoomViewUI(roomId: id ?? 0), preventDuplicates: false);
+        }
       } catch (e) {
-        //
+        debugPrint('Error in handleMessage: $e');
       }
     }
   }
 
-  //https://app-site-association.cdn-apple.com/a/v1/b-2b.com.ua
+  // Метод для проверки и обработки initialPush после готовности UI
+  void checkAndHandleInitialPush() {
+    if (initialPush != null && initialPush!.isNotEmpty) {
+      debugPrint('Processing initialPush: $initialPush');
+      String urlToProcess = initialPush!;
+      initialPush = null; // Очищаем чтобы не обрабатывать повторно
+
+      // Небольшая задержка для уверенности что UI готов
+      Future.delayed(Duration(milliseconds: 500), () {
+        handleMessage(urlToProcess);
+      });
+    }
+  }
+
+  // Метод для проверки и обработки initialUri после готовности UI
+  void checkAndHandleInitialUri() {
+    if (initialUri != null && initialUri!.isNotEmpty) {
+      debugPrint('Processing initialUri: $initialUri');
+      String uriToProcess = initialUri!;
+      initialUri = null; // Очищаем чтобы не обрабатывать повторно
+
+      // Небольшая задержка для уверенности что UI готов
+      Future.delayed(Duration(milliseconds: 700), () {
+        try {
+          Uri uri = Uri.parse(uriToProcess);
+          openAppLink(uri);
+        } catch (e) {
+          debugPrint('Error parsing initialUri: $e');
+        }
+      });
+    }
+  }
+
+  //https://app-site-association.cdn-apple.com/a/v1/ms.afisha.news
   Future<void> initDeepLinks() async {
     try {
       _appLinks = AppLinks();
@@ -389,13 +436,8 @@ class AppState with ChangeNotifier {
         debugPrint('initialLink: $initUri');
         initialUri = initUri.toString();
 
-        // Откладываем обработку ссылки до момента, когда Navigator готов
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (initialUri != "") {
-            openAppLink(initUri);
-            initialUri = "";
-          }
-        });
+        // Сохраняем для обработки после готовности UI
+        debugPrint('Saved initialUri for later processing: $initialUri');
       }
 
       // Handle links
@@ -412,18 +454,29 @@ class AppState with ChangeNotifier {
   }
 
   String processDeepLink(String link) {
-    RegExp regExp = RegExp(r'/[sw]/(.+)$');
-    Match? match = regExp.firstMatch(link);
-    if (match != null) {
-      String extractedString = match.group(1)!;
+    // Поддерживаем старый формат /[sw]/(.+)
+    RegExp oldRegExp = RegExp(r'/[sw]/(.+)$');
+    Match? oldMatch = oldRegExp.firstMatch(link);
+    if (oldMatch != null) {
+      String extractedString = oldMatch.group(1)!;
       return extractedString;
     }
+
+    // Новый формат для комнат: /room/123
+    RegExp roomRegExp = RegExp(r'/room/(\d+)');
+    Match? roomMatch = roomRegExp.firstMatch(link);
+    if (roomMatch != null) {
+      String roomId = roomMatch.group(1)!;
+      return roomId;
+    }
+
     return '';
   }
 
   String? extractLinkType(String link) {
     if (link.contains('/s/')) return 's';
     if (link.contains('/w/')) return 'w';
+    if (link.contains('/room/')) return 'room';
     return null;
   }
 
@@ -440,17 +493,32 @@ class AppState with ChangeNotifier {
       // Небольшая задержка для надежности на всех Android версиях
       await Future.delayed(const Duration(milliseconds: 300));
 
-      if (linkType == 's') {
-        // Shared word: /s/shareUrl
-        //Get.to(() => SharedWordUI(shareUrl: extractedString),preventDuplicates: false);
-      } else if (linkType == 'w') {
-        // Direct word ID: /w/wordId
-        final wordId = int.tryParse(extractedString);
-        if (wordId != null) {
-          //Get.to(() => WordUI(id: wordId, word: ''), preventDuplicates: false);
+      if (linkType == 'room') {
+        // Room link: /room/123
+        final roomId = int.tryParse(extractedString);
+        if (roomId != null) {
+          debugPrint('Opening room via app link: $roomId');
+
+          // Используем Navigator вместо Get.to для правильной передачи темы
+          if (Get.context != null) {
+            Navigator.of(Get.context!).push(
+              MaterialPageRoute(
+                builder: (context) => RoomViewUI(roomId: roomId),
+              ),
+            );
+          } else {
+            // Fallback на Get.to если контекст недоступен
+            Get.to(() => RoomViewUI(roomId: roomId), preventDuplicates: false);
+          }
         } else {
-          debugPrint('Invalid word ID: $extractedString');
+          debugPrint('Invalid room ID: $extractedString');
         }
+      } else if (linkType == 's') {
+        // Shared word: /s/shareUrl (оставляем для совместимости)
+        debugPrint('Shared link not implemented: $extractedString');
+      } else if (linkType == 'w') {
+        // Direct word ID: /w/wordId (оставляем для совместимости)
+        debugPrint('Word link not implemented: $extractedString');
       }
     } catch (e) {
       debugPrint('openAppLink error: ${e.toString()}');

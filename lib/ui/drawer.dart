@@ -13,6 +13,7 @@ import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 import '../ii.dart';
 import '../state.dart';
 import 'login.dart';
+import 'about.dart';
 import 'package:provider/provider.dart';
 
 class DrawerUI extends StatefulWidget {
@@ -112,9 +113,12 @@ class _DrawlerState extends State<DrawerUI>
                       leading: Icon(Icons.person_outline),
                       title: Text('Profile'.ii()),
                       onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => ProfileUI(isReadOnly: false, id: 0)));
+                        //Navigator.pop(context);
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    ProfileUI(isReadOnly: false, id: 0)));
                       },
                     ),
                     ListTile(
@@ -122,7 +126,9 @@ class _DrawlerState extends State<DrawerUI>
                       title: Text('Logout'.ii()),
                       onTap: () async {
                         await _logout(context);
-                        Navigator.pop(context);
+                        //Navigator.pop(context);
+                        Navigator.pushReplacement(context,
+                            CupertinoPageRoute(builder: (_) => HomeUI()));
                       },
                     ),
                   ])
@@ -137,7 +143,7 @@ class _DrawlerState extends State<DrawerUI>
                   style: const TextStyle(fontSize: 10),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
+                  //Navigator.pop(context);
                   Navigator.push(
                       context, MaterialPageRoute(builder: (_) => LoginUI()));
                 },
@@ -160,7 +166,7 @@ class _DrawlerState extends State<DrawerUI>
                 showErrSnackBar(context, 'QR code is not valid');
                 return;
               }
-              Navigator.pop(context);
+              //Navigator.pop(context);
               Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -174,9 +180,18 @@ class _DrawlerState extends State<DrawerUI>
             'Settings'.ii(),
           ),
           onTap: () {
-            Navigator.pop(context);
             Navigator.push(
                 context, MaterialPageRoute(builder: (_) => SettingsUI()));
+          },
+        ),
+        ListTile(
+          leading: Icon(Icons.info_outline),
+          title: Text(
+            'About'.ii(),
+          ),
+          onTap: () {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (_) => AboutUI()));
           },
         ),
 
@@ -202,7 +217,7 @@ class _DrawlerState extends State<DrawerUI>
                           var response = await API.delClient();
                           debugPrint(
                               "Delete account: " + response.body.toString());
-                          Navigator.pop(context);
+                          //Navigator.pop(context);
                           Navigator.pushReplacement(context,
                               CupertinoPageRoute(builder: (_) => LoginUI()));
                         },

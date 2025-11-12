@@ -47,7 +47,24 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<true/>
-		<key>UIViewControllerBasedStatusBarAppearance</key>
-		<false/>
-	</dict>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+	<!-- App Links configuration -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ms.afisha.news</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>https</string>
+			</array>
+		</dict>
+	</array>
+	<!-- Associated Domains for App Links -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:ms.afisha.news</string>
+	</array>
+</dict>
 </plist>
