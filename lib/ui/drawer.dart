@@ -114,7 +114,7 @@ class _DrawlerState extends State<DrawerUI>
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => ProfileUI()));
+                            MaterialPageRoute(builder: (_) => ProfileUI(isReadOnly: false, id: 0)));
                       },
                     ),
                     ListTile(

@@ -4,18 +4,20 @@ import 'package:epamms/ii.dart';
 import 'package:epamms/ui/snack_bar.dart';
 import 'package:epamms/ui/wishlist.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:typed_data';
-
 import '../api.dart';
 import 'home.dart';
 
 class ProfileUI extends StatefulWidget {
+  final bool isReadOnly;
+  final int id;
+  ProfileUI({required this.isReadOnly, required this.id});
   @override
   State<StatefulWidget> createState() => _ProfileState();
 }
@@ -40,6 +42,7 @@ class _ProfileState extends State<ProfileUI> {
 
   bool isLoadingNP = false;
   List wishlist = [];
+  bool isReadOnly = false;
 
   @override
   void initState() {
@@ -53,7 +56,9 @@ class _ProfileState extends State<ProfileUI> {
   }
 
   _load() async {
+    isReadOnly = widget.isReadOnly;
     try {
+      FirebaseAnalytics.instance.logEvent(name: 'profile');
       final responseLangs = await API.getLanguages();
       if (responseLangs.statusCode != 200) {
         throw Exception(API.httpErr + responseLangs.statusCode.toString());
@@ -78,7 +83,7 @@ class _ProfileState extends State<ProfileUI> {
       }
       npAreaList.addAll(jsonDecode(responseAreas.body));
 
-      final response = await API.getProfile();
+      final response = await API.getProfile(widget.id);
       if (response.statusCode != 200) {
         throw Exception(API.httpErr + response.statusCode.toString());
       }
@@ -121,11 +126,14 @@ class _ProfileState extends State<ProfileUI> {
         ),
         title: Text("Profile".ii()),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _save(context);
-        },
-        child: Icon(Icons.check),
+      floatingActionButton: Visibility(
+        visible: !isReadOnly,
+        child: FloatingActionButton(
+          onPressed: () {
+            _save(context);
+          },
+          child: Icon(Icons.check),
+        ),
       ),
       body: Container(
         padding: EdgeInsets.all(5.0),
@@ -141,145 +149,171 @@ class _ProfileState extends State<ProfileUI> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextFormField(
-              //autofocus: true,
+          AbsorbPointer(
+            absorbing: isReadOnly,
+            child: TextFormField(
+                //autofocus: true,
+                onChanged: (value) {
+                  profile['name1'] = value;
+                },
+                initialValue: profile['name1'],
+                decoration: InputDecoration(
+                  labelText: 'First name'.ii(),
+                  isDense: true,
+                  contentPadding:
+                      EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+                )),
+          ),
+          AbsorbPointer(
+            absorbing: isReadOnly,
+            child: TextFormField(
+                onChanged: (value) {
+                  profile['name2'] = value;
+                },
+                initialValue: profile['name2'],
+                decoration: InputDecoration(
+                  labelText: 'Second name'.ii(),
+                  isDense: true,
+                  contentPadding:
+                      EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+                )),
+          ),
+          AbsorbPointer(
+            absorbing: isReadOnly,
+            child: TextFormField(
+              keyboardType: TextInputType.number,
+              maxLength: 9,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onChanged: (value) {
-                profile['name1'] = value;
+                profile['phone'] = value;
               },
-              initialValue: profile['name1'],
+              initialValue: profile['phone'],
               decoration: InputDecoration(
-                labelText: 'First name'.ii(),
+                prefixText: '+380 ',
+                counterText: '',
+                labelText: 'Phone number'.ii(),
                 isDense: true,
                 contentPadding:
                     EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
-              )),
-          TextFormField(
-              //autofocus: true,
-              onChanged: (value) {
-                profile['name2'] = value;
-              },
-              initialValue: profile['name2'],
-              decoration: InputDecoration(
-                labelText: 'Second name'.ii(),
-                isDense: true,
-                contentPadding:
-                    EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
-              )),
-          TextFormField(
-            keyboardType: TextInputType.number,
-            maxLength: 9,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            onChanged: (value) {
-              profile['phone'] = value;
-            },
-            initialValue: profile['phone'],
-            decoration: InputDecoration(
-              prefixText: '+380 ',
-              counterText: '',
-              labelText: 'Phone number'.ii(),
-              isDense: true,
-              contentPadding: EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
-              errorText: (profile['phone'] != null &&
-                      profile['phone'].toString().length != 9 &&
-                      profile['phone'].toString().isNotEmpty)
-                  ? 'Enter 9 digits'
-                  : null,
+                errorText: (profile['phone'] != null &&
+                        profile['phone'].toString().length != 9 &&
+                        profile['phone'].toString().isNotEmpty)
+                    ? 'Enter 9 digits'
+                    : null,
+              ),
             ),
           ),
           Text('Sex'.ii()),
-          DropdownButtonFormField(
-            items: sex
-                .map((item) => DropdownMenuItem(
-                    child: Text(item['name']), value: item['id']))
-                .toList(),
-            initialValue: sex.any((item) => item['id'] == profile['sex'])
-                ? profile['sex']
-                : null,
-            onChanged: (value) {
-              profile['sex'] = value;
-            },
+          AbsorbPointer(
+            absorbing: isReadOnly,
+            child: DropdownButtonFormField(
+              items: sex
+                  .map((item) => DropdownMenuItem(
+                      child: Text(item['name']), value: item['id']))
+                  .toList(),
+              initialValue: sex.any((item) => item['id'] == profile['sex'])
+                  ? profile['sex']
+                  : null,
+              onChanged: (value) {
+                profile['sex'] = value;
+              },
+            ),
           ),
-          DropdownButtonFormField<String>(
-            items: languages
-                .map((item) => DropdownMenuItem<String>(
-                    child: Text(item['nativeName']?.toString() ??
-                        item['name']?.toString() ??
-                        ''),
-                    value: item['code']?.toString()))
-                .where((item) => item.value != null)
-                .toList(),
-            value: languages.any((item) =>
-                    item['code']?.toString() == profile['lang']?.toString())
-                ? profile['lang']?.toString()
-                : null,
-            onChanged: (value) {
-              if (value != null) {
-                profile['lang'] = value;
-              }
-            },
-            decoration: InputDecoration(
-              labelText: 'Language'.ii(),
-              isDense: true,
-              contentPadding: EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+          AbsorbPointer(
+            absorbing: isReadOnly,
+            child: DropdownButtonFormField<String>(
+              items: languages
+                  .map((item) => DropdownMenuItem<String>(
+                      child: Text(item['nativeName']?.toString() ??
+                          item['name']?.toString() ??
+                          ''),
+                      value: item['code']?.toString()))
+                  .where((item) => item.value != null)
+                  .toList(),
+              value: languages.any((item) =>
+                      item['code']?.toString() == profile['lang']?.toString())
+                  ? profile['lang']?.toString()
+                  : null,
+              onChanged: (value) {
+                if (value != null) {
+                  profile['lang'] = value;
+                }
+              },
+              decoration: InputDecoration(
+                labelText: 'Language'.ii(),
+                isDense: true,
+                contentPadding:
+                    EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+              ),
             ),
           ),
           SizedBox(height: 10),
-          TextFormField(
-            keyboardType: TextInputType.number,
-            maxLength: 4,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            onChanged: (value) {
-              profile['year'] = value;
-            },
-            initialValue: profile['year'].toString(),
-            decoration: InputDecoration(
-              labelText: 'Year of birth'.ii(),
-              isDense: true,
-              contentPadding: EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+          AbsorbPointer(
+            absorbing: isReadOnly,
+            child: TextFormField(
+              keyboardType: TextInputType.number,
+              maxLength: 4,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              onChanged: (value) {
+                profile['year'] = value;
+              },
+              initialValue: profile['year'].toString(),
+              decoration: InputDecoration(
+                labelText: 'Year of birth'.ii(),
+                isDense: true,
+                contentPadding:
+                    EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+              ),
             ),
           ),
           SizedBox(height: 10),
-          TextFormField(
-            onChanged: (value) {
-              profile['hobby'] = value;
-            },
-            initialValue: profile['hobby'],
-            decoration: InputDecoration(
-              labelText: 'Hobby'.ii(),
+          AbsorbPointer(
+            absorbing: isReadOnly,
+            child: TextFormField(
+              onChanged: (value) {
+                profile['hobby'] = value;
+              },
+              initialValue: profile['hobby'],
+              decoration: InputDecoration(
+                labelText: 'Hobby'.ii(),
+              ),
             ),
           ),
           Text('Delivery service'.ii()),
-          DropdownButtonFormField(
-            isExpanded: true,
-            items: delService
-                .map((item) => DropdownMenuItem(
-                    child: Text(item['name']), value: item['id']))
-                .toList(),
-            initialValue: profile['delService'] != null &&
-                    profile['delService'].toString().isNotEmpty &&
-                    delService
-                        .any((item) => item['id'] == profile['delService'])
-                ? profile['delService']
-                : null,
-            onChanged: (value) async {
-              try {
-                setState(() {
-                  isLoadingNP = true;
-                });
-                profile['delService'] = value;
-                if (profile['delService'] == 2 &&
-                    profile['npWh'] != null &&
-                    profile['npWh'].toString().isNotEmpty) {
-                  await _loadNPData();
+          AbsorbPointer(
+            absorbing: isReadOnly,
+            child: DropdownButtonFormField(
+              isExpanded: true,
+              items: delService
+                  .map((item) => DropdownMenuItem(
+                      child: Text(item['name']), value: item['id']))
+                  .toList(),
+              initialValue: profile['delService'] != null &&
+                      profile['delService'].toString().isNotEmpty &&
+                      delService
+                          .any((item) => item['id'] == profile['delService'])
+                  ? profile['delService']
+                  : null,
+              onChanged: (value) async {
+                try {
+                  setState(() {
+                    isLoadingNP = true;
+                  });
+                  profile['delService'] = value;
+                  if (profile['delService'] == 2 &&
+                      profile['npWh'] != null &&
+                      profile['npWh'].toString().isNotEmpty) {
+                    await _loadNPData();
+                  }
+                } on Exception catch (_) {
+                  // TODO: handle exception
+                } finally {
+                  setState(() {
+                    isLoadingNP = false;
+                  });
                 }
-              } on Exception catch (_) {
-                // TODO: handle exception
-              } finally {
-                setState(() {
-                  isLoadingNP = false;
-                });
-              }
-            },
+              },
+            ),
           ),
           SizedBox(height: 10),
           if (profile['delService'] == 1) _buildUkrPoshta(context),
@@ -294,6 +328,9 @@ class _ProfileState extends State<ProfileUI> {
             ],
           ),
           _buildSelfie(context),
+          Center(
+              child: Text('Tap to take a selfie'.ii(),
+                  style: TextStyle(fontSize: 12))),
           SizedBox(height: 10),
           Divider(),
           Row(
@@ -313,32 +350,37 @@ class _ProfileState extends State<ProfileUI> {
   }
 
   Widget _buildUkrPoshta(context) {
-    return Column(
-      children: [
-        Image.asset('images/ukrpost-logo.png'),
-        TextFormField(
-            //autofocus: true,
-            onChanged: (value) {
-              profile['postIndex'] = value;
-            },
-            initialValue: profile['postIndex'],
-            decoration: InputDecoration(
-              labelText: 'Post index'.ii(),
-              isDense: true,
-              contentPadding: EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
-            )),
-        TextFormField(
-            //autofocus: true,
-            onChanged: (value) {
-              profile['address'] = value;
-            },
-            initialValue: profile['address'],
-            decoration: InputDecoration(
-              labelText: 'Address'.ii(),
-              isDense: true,
-              contentPadding: EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
-            )),
-      ],
+    return AbsorbPointer(
+      absorbing: isReadOnly,
+      child: Column(
+        children: [
+          Image.asset('images/ukrpost-logo.png'),
+          TextFormField(
+              //autofocus: true,
+              onChanged: (value) {
+                profile['postIndex'] = value;
+              },
+              initialValue: profile['postIndex'],
+              decoration: InputDecoration(
+                labelText: 'Post index'.ii(),
+                isDense: true,
+                contentPadding:
+                    EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+              )),
+          TextFormField(
+              //autofocus: true,
+              onChanged: (value) {
+                profile['address'] = value;
+              },
+              initialValue: profile['address'],
+              decoration: InputDecoration(
+                labelText: 'Address'.ii(),
+                isDense: true,
+                contentPadding:
+                    EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+              )),
+        ],
+      ),
     );
   }
 
@@ -491,58 +533,61 @@ class _ProfileState extends State<ProfileUI> {
   }
 
   Widget _buildSelfie(context) {
-    return Dismissible(
-      key: Key('selfie'),
-      onDismissed: (direction) {
-        setState(() {});
-      },
-      confirmDismiss: (direction) async {
-        return await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-                  title: Text('Delete selfie?'.ii()),
-                  content:
-                      Text('Are you sure you want to delete your selfie?'.ii()),
-                  actions: [
-                    TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(false);
-                        },
-                        child: Text('Cancel'.ii())),
-                    TextButton(
-                        onPressed: () async {
-                          final photoResponse = await API.delPhoto();
-                          if (photoResponse.statusCode != 200) {
-                            throw Exception(API.httpErr +
-                                photoResponse.statusCode.toString());
-                          }
-                          if (!mounted) return;
-                          showSnackBar(context, 'Photo deleted successfully');
-                          setState(() {
-                            _selfieImageFile = null;
-                            profile['photo'] = false;
-                            profile['selfiePath'] = null;
-                          });
-                          Navigator.of(context).pop(true);
-                        },
-                        child: Text('Delete'.ii())),
-                  ],
-                ));
-      },
-      child: GestureDetector(
-        onTap: _takeSelfie,
-        child: Center(
-          child: ClipOval(
-            child: SizedBox(
-              width: 300,
-              height: 300,
-              child: _selfieImageFile != null
-                  ? Image.file(_selfieImageFile!, fit: BoxFit.cover)
-                  : (profile['photo'] != null && profile['photo'] == true
-                      ? Image.network(
-                          'https://ms.afisha.news/photo.php?id=${profile['id']}',
-                          fit: BoxFit.cover)
-                      : Image.asset('images/user.png', fit: BoxFit.cover)),
+    return AbsorbPointer(
+      absorbing: isReadOnly,
+      child: Dismissible(
+        key: Key('selfie'),
+        onDismissed: (direction) {
+          setState(() {});
+        },
+        confirmDismiss: (direction) async {
+          return await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                    title: Text('Delete selfie?'.ii()),
+                    content: Text(
+                        'Are you sure you want to delete your selfie?'.ii()),
+                    actions: [
+                      TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(false);
+                          },
+                          child: Text('Cancel'.ii())),
+                      TextButton(
+                          onPressed: () async {
+                            final photoResponse = await API.delPhoto();
+                            if (photoResponse.statusCode != 200) {
+                              throw Exception(API.httpErr +
+                                  photoResponse.statusCode.toString());
+                            }
+                            if (!mounted) return;
+                            showSnackBar(context, 'Photo deleted successfully');
+                            setState(() {
+                              _selfieImageFile = null;
+                              profile['photo'] = false;
+                              profile['selfiePath'] = null;
+                            });
+                            Navigator.of(context).pop(true);
+                          },
+                          child: Text('Delete'.ii())),
+                    ],
+                  ));
+        },
+        child: GestureDetector(
+          onTap: _takeSelfie,
+          child: Center(
+            child: ClipOval(
+              child: SizedBox(
+                width: 300,
+                height: 300,
+                child: _selfieImageFile != null
+                    ? Image.file(_selfieImageFile!, fit: BoxFit.cover)
+                    : (profile['photo'] != null && profile['photo'] == true
+                        ? Image.network(
+                            'https://ms.afisha.news/photo.php?id=${profile['id']}',
+                            fit: BoxFit.cover)
+                        : Image.asset('images/user.png', fit: BoxFit.cover)),
+              ),
             ),
           ),
         ),
@@ -617,146 +662,155 @@ class _ProfileState extends State<ProfileUI> {
   }
 
   Widget _buildWishlistItem(context, itemMap) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 10),
-      //padding: EdgeInsets.all(8),
-      child: Dismissible(
-        key: Key('wishlist_${itemMap['id']}'),
-        onDismissed: (direction) {
-          //_delWishlist(itemMap['id']);
-          setState(() {
-            wishlist.remove(itemMap);
-          });
-        },
-        confirmDismiss: (direction) async {
-          return await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                    title: Text('Delete your wish?'.ii()),
-                    content:
-                        Text('Are you sure you want to delete this wish?'.ii()),
-                    actions: [
-                      TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(false);
-                          },
-                          child: Text('Cancel'.ii())),
-                      TextButton(
-                          onPressed: () async {
-                            final wishlistResponse =
-                                await API.delWishlist(itemMap['id']);
-                            if (wishlistResponse.statusCode != 200) {
-                              throw Exception(API.httpErr +
-                                  wishlistResponse.statusCode.toString());
-                            }
-                            if (!mounted) return;
-                            showSnackBar(
-                                context, 'Wishlist deleted successfully');
-                            setState(() {
-                              profile['wishlist'].remove(itemMap);
-                            });
-                            Navigator.of(context).pop(true);
-                          },
-                          child: Text('Delete'.ii())),
-                    ],
-                  ));
-        },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () async {
-                  final wish = await Navigator.of(context).push<Map>(
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            WishEditUI(wishId: itemMap['id'])),
-                  );
-                  setState(() {
-                    wishlist.remove(itemMap);
-                    if (wish != null) wishlist.add(wish);
-                  });
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      itemMap['name'],
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                      softWrap: true,
-                      overflow: TextOverflow.visible,
-                      maxLines: null,
-                    ),
-                    if (itemMap['description'].isNotEmpty)
-                      Padding(
-                        padding: EdgeInsets.only(top: 4),
-                        child: Text(
-                          itemMap['description'],
-                          style: TextStyle(
-                              fontSize: 12, color: Colors.grey.shade700),
-                          softWrap: true,
-                        ),
+    return AbsorbPointer(
+      absorbing: isReadOnly,
+      child: Container(
+        margin: EdgeInsets.only(bottom: 10),
+        //padding: EdgeInsets.all(8),
+        child: Dismissible(
+          key: Key('wishlist_${itemMap['id']}'),
+          onDismissed: (direction) {
+            //_delWishlist(itemMap['id']);
+            setState(() {
+              wishlist.remove(itemMap);
+            });
+          },
+          confirmDismiss: (direction) async {
+            return await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                      title: Text('Delete your wish?'.ii()),
+                      content: Text(
+                          'Are you sure you want to delete this wish?'.ii()),
+                      actions: [
+                        TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(false);
+                            },
+                            child: Text('Cancel'.ii())),
+                        TextButton(
+                            onPressed: () async {
+                              final wishlistResponse =
+                                  await API.delWishlist(itemMap['id']);
+                              if (wishlistResponse.statusCode != 200) {
+                                throw Exception(API.httpErr +
+                                    wishlistResponse.statusCode.toString());
+                              }
+                              if (!mounted) return;
+                              showSnackBar(
+                                  context, 'Wishlist deleted successfully');
+                              setState(() {
+                                profile['wishlist'].remove(itemMap);
+                              });
+                              Navigator.of(context).pop(true);
+                            },
+                            child: Text('Delete'.ii())),
+                      ],
+                    ));
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () async {
+                    final wish = await Navigator.of(context).push<Map>(
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              WishEditUI(wishId: itemMap['id'])),
+                    );
+                    setState(() {
+                      wishlist.remove(itemMap);
+                      if (wish != null) wishlist.add(wish);
+                    });
+                  },
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        itemMap['name'],
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18),
+                        softWrap: true,
+                        overflow: TextOverflow.visible,
+                        maxLines: null,
                       ),
-                  ],
+                      if (itemMap['description'].isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.only(top: 4),
+                          child: Text(
+                            itemMap['description'],
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey.shade700),
+                            softWrap: true,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            itemMap['url'].isNotEmpty
-                ? GestureDetector(
-                    onTap: () {
-                      if (itemMap['url'].isNotEmpty) {
-                        launchUrl(Uri.parse(itemMap['url']),
-                            mode: LaunchMode.externalApplication);
-                      }
-                    },
-                    behavior: HitTestBehavior.translucent,
-                    child: Icon(EvaIcons.link2))
-                : SizedBox.shrink(),
-          ],
+              itemMap['url'].isNotEmpty
+                  ? GestureDetector(
+                      onTap: () {
+                        if (itemMap['url'].isNotEmpty) {
+                          launchUrl(Uri.parse(itemMap['url']),
+                              mode: LaunchMode.externalApplication);
+                        }
+                      },
+                      behavior: HitTestBehavior.translucent,
+                      child: Icon(EvaIcons.link2))
+                  : SizedBox.shrink(),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildWishlist(context) {
-    return Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ListView.builder(
-            physics: NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemBuilder: (context, index) {
-              return _buildWishlistItem(context, wishlist[index]);
-            },
-            itemCount: wishlist.length,
-          ),
-          Container(
-            margin: EdgeInsets.only(top: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () async {
-                    final wish = await Navigator.of(context).push<Map>(
-                      MaterialPageRoute(
-                          builder: (context) => WishEditUI(wishId: 0)),
-                    );
-                    if (wish != null) {
-                      setState(() {
-                        wishlist.add(wish);
-                      });
-                    }
-                  },
-                  child: Icon(Icons.add),
-                )
-              ],
+    return AbsorbPointer(
+      absorbing: isReadOnly,
+      child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListView.builder(
+              physics: NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemBuilder: (context, index) {
+                return _buildWishlistItem(context, wishlist[index]);
+              },
+              itemCount: wishlist.length,
             ),
-          )
-        ]);
+            Container(
+              margin: EdgeInsets.only(top: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Visibility(
+                    visible: !isReadOnly,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final wish = await Navigator.of(context).push<Map>(
+                          MaterialPageRoute(
+                              builder: (context) => WishEditUI(wishId: 0)),
+                        );
+                        if (wish != null) {
+                          setState(() {
+                            wishlist.add(wish);
+                          });
+                        }
+                      },
+                      child: Icon(Icons.add),
+                    ),
+                  )
+                ],
+              ),
+            )
+          ]),
+    );
   }
 }

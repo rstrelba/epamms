@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:epamms/ui/profile.dart';
 import 'package:epamms/ui/snack_bar.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -23,16 +25,20 @@ class _RoomState extends State<RoomUI> {
   bool _isLoading = true;
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
+  TextEditingController? _budgetController;
   List<dynamic> langs = [];
   int roomId = 0;
+  int clientsCount = 0;
   bool isVisible = false;
   DateTime? exchangeDate;
+  List<dynamic> recipients = [];
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController();
     _descriptionController = TextEditingController();
+    _budgetController = TextEditingController();
     _load();
   }
 
@@ -40,11 +46,13 @@ class _RoomState extends State<RoomUI> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _budgetController?.dispose();
     super.dispose();
   }
 
   void _load() async {
     try {
+      FirebaseAnalytics.instance.logEvent(name: 'roomedit');
       final response = await API.getRoom(widget.roomId);
       if (response.statusCode != 200) {
         throw Exception(API.httpErr + response.statusCode.toString());
@@ -53,9 +61,12 @@ class _RoomState extends State<RoomUI> {
 
       debugPrint(response.body);
       final res = jsonDecode(response.body);
+      recipients = res['recipients'];
       roomId = res['roomId'];
       _titleController.text = res['title'] ?? '';
       _descriptionController.text = res['desc'] ?? '';
+      _budgetController?.text = (res['budget'] ?? 0).toString();
+      clientsCount = res['clientsCount'] ?? 0;
       isVisible = res['isVisible'] ?? false;
       final exchangeDateStr = res['exchangeDate'];
       if (exchangeDateStr != null &&
@@ -148,7 +159,7 @@ class _RoomState extends State<RoomUI> {
               ],
             ),
             TextField(
-                autofocus: true,
+                //autofocus: true,
                 controller: _titleController,
                 decoration: InputDecoration(
                   labelText: 'Room title'.ii(),
@@ -170,6 +181,16 @@ class _RoomState extends State<RoomUI> {
                   contentPadding:
                       EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
                 )),
+            TextFormField(
+              controller: _budgetController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Budget'.ii(),
+                isDense: true,
+                contentPadding:
+                    EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+              ),
+            ),
             SizedBox(height: 20),
             Row(
               children: [
@@ -208,6 +229,33 @@ class _RoomState extends State<RoomUI> {
                 ),
               ],
             ),
+            SizedBox(height: 10),
+            Center(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  //shape: CircleBorder(),
+                  padding: EdgeInsets.all(1),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 4,
+                ),
+                onPressed: () {
+                  _doRandomize(
+                      context); // TODO: Implement AI suggestion logic here
+                },
+                icon: Icon(Icons.admin_panel_settings_outlined,
+                    size: 32), // Gemini-like sparkle
+                label: Padding(
+                  padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                  child: Text(
+                    'Randomize room!',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            _buildRecipients(context),
           ],
         ),
       ),
@@ -230,7 +278,7 @@ class _RoomState extends State<RoomUI> {
     room['roomId'] = roomId;
     room['title'] = _titleController.text;
     room['description'] = _descriptionController.text;
-
+    room['budget'] = _budgetController?.text ?? 0;
     // convert exchangeDate to string only with date (YYYY-MM-DD)
     if (exchangeDate != null) {
       String exchangeDateStr =
@@ -295,5 +343,87 @@ class _RoomState extends State<RoomUI> {
       },
     ).then((value) => Navigator.pushReplacement(
         context, CupertinoPageRoute(builder: (_) => HomeUI())));
+  }
+
+  Widget _buildRecipients(context) {
+    return ListView.builder(
+      itemCount: recipients.length,
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        final recipient = recipients[index];
+        final rcpName = recipient['name'].length > 5
+            ? recipient['name']
+            : recipient['email'];
+        return Dismissible(
+          key: Key(recipient['id'].toString()),
+          onDismissed: (direction) {
+            setState(() {
+              recipients.removeAt(index);
+            });
+          },
+          confirmDismiss: (direction) async {
+            return await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                      title: Text('Delete recipient?'.ii()),
+                      content: Text(
+                          'Are you sure you want to delete this recipient?'
+                              .ii()),
+                    ));
+          },
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) =>
+                        ProfileUI(isReadOnly: true, id: recipient['id'])),
+              );
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ClipOval(
+                  child: SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: (recipient['photo'] != null &&
+                            recipient['photo'] == true
+                        ? Image.network(
+                            'https://ms.afisha.news/photo.php?id=${recipient['id']}',
+                            fit: BoxFit.cover)
+                        : Image.asset('images/user.png', fit: BoxFit.cover)),
+                  ),
+                ),
+                SizedBox(width: 10),
+                Text(rcpName),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _doRandomize(context) async {
+    try {
+      if (clientsCount < 2) {
+        showErrSnackBar(context,
+            "You need at least 2 participants to randomize the room!".ii());
+        return;
+      }
+      final response = await API.doRandomize(roomId);
+      if (response.statusCode != 200) {
+        throw Exception(API.httpErr + response.statusCode.toString());
+      }
+      debugPrint(response.body);
+      final res = jsonDecode(response.body);
+      debugPrint("DO RANDOMIZE=" + res.toString());
+      showSnackBar(context, "Room randomized successfully!".ii());
+    } catch (e) {
+      showErrSnackBar(context, e.toString());
+    }
   }
 }

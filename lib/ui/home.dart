@@ -91,6 +91,7 @@ class _HomeState extends State<HomeUI> {
     setState(() {
       _isLoading = true;
     });
+    FirebaseAnalytics.instance.logEvent(name: 'rooms');
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     sortMode = prefs.getString('sortMode') ?? "all";
     try {

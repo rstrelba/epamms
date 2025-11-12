@@ -8,13 +8,10 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:http/http.dart' as http;
 import 'package:random_string/random_string.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'state.dart';
 
 // login
 class API {
@@ -140,26 +137,19 @@ class API {
   }
 
   static Future loginWith(Map params) async {
-    var url = apiUrl + "login-with.php";
+    var url = apiUrl + "login-with-google.php";
     debugPrint("URL= $url");
     String hh = await getToken();
     params["stoken"] = hh;
-    //$auth2 = sha1($login . $hh . "MyVocab");
-    var login = params['login'];
-    var seed = randomAlphaNumeric(64);
-    String source = login.toUpperCase() + "MyVocab0_" + seed;
-    var seal = calculateSHA512(source);
-    params["seed"] = seed;
-    params["seal"] = seal;
     params["type"] = params['provider'];
     params["device"] = await getDeviceName();
-    String? fbToken = await getFbToken();
-    params["fbtoken"] = fbToken;
-    return http.post(Uri.parse(url), body: params);
+    params["fcmToken"] = await getFbToken();
+    params["lang"] = await getLang();
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: getHeaders());
   }
 
   static Future getRooms(int page, String q, String sortMode) async {
-    String stoken = await getToken();
     var url = apiUrl + "get-rooms.php";
     if (q.length > 0) url += "&q=$q";
     debugPrint("URL=$url");
@@ -180,10 +170,11 @@ class API {
         body: json.encode(params), headers: getHeaders());
   }
 
-  static Future getProfile() async {
+  static Future getProfile(int id) async {
     var url = apiUrl + "get-profile.php";
     debugPrint("URL=$url");
     Map params = Map();
+    params["id"] = id;
     return http.post(Uri.parse(url),
         body: json.encode(params), headers: getHeaders());
   }
@@ -279,6 +270,15 @@ class API {
     Map params = Map();
     params["id"] = id;
     var url = apiUrl + "del-wish.php";
+    debugPrint("URL= $url");
+    return http.post(Uri.parse(url),
+        body: json.encode(params), headers: getHeaders());
+  }
+
+  static Future doRandomize(int id) async {
+    Map params = Map();
+    params["roomId"] = id;
+    var url = apiUrl + "do-randomize.php";
     debugPrint("URL= $url");
     return http.post(Uri.parse(url),
         body: json.encode(params), headers: getHeaders());

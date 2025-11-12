@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:epamms/ii.dart';
 import 'package:epamms/ui/snack_bar.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import '../api.dart';
 
@@ -32,6 +33,7 @@ class _WishEditState extends State<WishEditUI> {
       isLoading = true;
     });
     try {
+      FirebaseAnalytics.instance.logEvent(name: 'wishlist');
       final response = await API.getWish(widget.wishId);
       if (response.statusCode != 200) {
         throw Exception(API.httpErr + response.statusCode.toString());

@@ -1,4 +1,4 @@
-package news.afisha.epamms
+package news.afisha.mysterioussanta
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -15,7 +15,7 @@ import java.io.File
 import java.io.FileOutputStream
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.epamms/clipboard"
+    private val CHANNEL = "com.mysterioussanta/clipboard"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -72,3 +72,4 @@ class MainActivity : FlutterActivity() {
         }
     }
 }
+

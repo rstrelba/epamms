@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:email_validator/email_validator.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -59,6 +60,7 @@ class _LoginState extends State<LoginUI> {
   }
 
   Future<void> _loadLogin() async {
+    FirebaseAnalytics.instance.logEvent(name: 'login');
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _emailCtrl.text = prefs.getString('login') ?? "";
@@ -321,64 +323,106 @@ class _LoginState extends State<LoginUI> {
   }
 
   void _doLoginWithGoogle() async {
-    const List<String> scopes = <String>['email'];
+    const List<String> scopes = <String>['email', 'profile', 'openid'];
     GoogleSignInAccount? user;
 
     try {
+      setState(() {
+        _isLogging = true;
+      });
+
+      const String serverClientId =
+          "405952516189-eo8t2ijs6r4p1ag1oeqrjqv6c72jcma5.apps.googleusercontent.com";
+
       final _googleSignIn = GoogleSignIn.instance;
       await _googleSignIn.initialize(
-          serverClientId:
-              "851125376881-ofjr7og61nv8gd6pm8iih5pb9clu2lm0.apps.googleusercontent.com");
+        serverClientId: serverClientId,
+      );
 
+      // try to use lightweight auth
       var _maybeUser = await _googleSignIn.attemptLightweightAuthentication();
       if (_maybeUser != null) {
         user = _maybeUser;
       } else {
-        // Если тихий не сработал, вызываем authenticate (user-interactive)
+        // if lightweight authentication failed, show the login dialog
         user = await _googleSignIn.authenticate(scopeHint: scopes);
-        // и другие нужные OAuth scope
       }
 
-      debugPrint(user.toString());
-      String? email = '';
-      email = user.email;
+      // get ID token for verification on the backend
+      final GoogleSignInAuthentication googleAuth = await user.authentication;
+      final String? idToken = googleAuth.idToken;
+
+      if (idToken == null) {
+        throw Exception(
+            "Failed to get Google ID token. Check the correctness of serverClientId.");
+      }
+
+      debugPrint("Google user: ${user.email}");
+      debugPrint("ID Token получен: ${idToken.substring(0, 30)}...");
+
+      String? email = user.email;
       var displayName = user.displayName;
       var photoUrl = user.photoUrl;
+
+      if (email == null || email.isEmpty) {
+        throw Exception("Failed to get email from Google");
+      }
+
       Map params = Map();
       params['login'] = email;
-      params['name'] = displayName;
-      params['photoUrl'] = photoUrl;
+      params['name'] = displayName ?? '';
+      params['photoUrl'] = photoUrl ?? '';
       params['provider'] = "google";
+      params['idToken'] = idToken; // ID token
+      debugPrint("params=" + params.toString());
 
       var response = await API.loginWith(params);
-      if (response.statusCode != 200)
-        throw Exception(API.httpErr + response.statusCode.toString());
+      if (!mounted) return;
+      if (response.statusCode != 200) {
+        throw Exception(
+            "${API.httpErr} status = ${response.statusCode}\n${response.body}");
+      }
       debugPrint("resp=" + response.body.toString());
       var res = jsonDecode(response.body.toString());
 
       final state = Provider.of<AppState>(context, listen: false);
-      await state.tryToAuth();
+      state.clientId = res['clientId'] ?? 0;
+      state.clientLogin = res['login'] ?? email;
+
       if (state.clientId > 0) {
         // save new token
+        showSnackBar(context, 'Successfully logged in through Google');
+        API.sToken = res['stoken'] ?? '';
         final SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString("token", res['stoken']);
-        //await prefs.setString("login", _emailCtrl.text);
+        await prefs.setString("token", API.sToken);
+        await prefs.setString("login", email);
 
         Navigator.pushReplacement(
             context, CupertinoPageRoute(builder: (_) => HomeUI()));
       } else {
-        String err = res['err'].toString();
-        err = (err.length > 0) ? err : "Something goes wrong!";
-
+        String err = res['err']?.toString() ?? "Что-то пошло не так!";
         throw Exception(err);
       }
     } catch (e) {
-      showErrSnackBar(context, e.toString());
+      if (mounted) {
+        String errorMessage = e.toString();
+        // Улучшаем сообщения об ошибках для пользователя
+        if (errorMessage.contains("network_error") ||
+            errorMessage.contains("NetworkError")) {
+          errorMessage = "Ошибка сети. Проверьте подключение к интернету.";
+        } else if (errorMessage.contains("sign_in_canceled")) {
+          errorMessage = "Вход отменен";
+          return; // Не показываем ошибку, если пользователь просто отменил вход
+        }
+        showErrSnackBar(context, errorMessage);
+      }
       API.log('Google login error: $e');
     } finally {
-      setState(() {
-        _isLogging = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLogging = false;
+        });
+      }
     }
   }
 
@@ -392,7 +436,8 @@ class _LoginState extends State<LoginUI> {
 // or FacebookAuth.i.login()
     if (result.status == LoginStatus.success) {
       // you are logged
-      final AccessToken accessToken = result.accessToken!;
+      // TODO: Implement Facebook login with token
+      // final AccessToken accessToken = result.accessToken!;
     } else {
       print(result.status);
       print(result.message);

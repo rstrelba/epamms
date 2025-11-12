@@ -14,7 +14,7 @@ import UIKit
     }
     
     let clipboardChannel = FlutterMethodChannel(
-      name: "com.epamms/clipboard",
+      name: "com.mysterioussanta/clipboard",
       binaryMessenger: controller.binaryMessenger
     )
     

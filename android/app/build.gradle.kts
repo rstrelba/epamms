@@ -11,7 +11,7 @@ plugins {
 val kotlin_version = "2.1.0"
 
 android {
-    namespace = "news.afisha.epamms"
+    namespace = "news.afisha.mysterioussanta"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -36,11 +36,25 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("../../debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+
+        create("release") {
+            keyAlias = "release"
+            keyPassword = "999000pL"
+            storeFile = file("../../release.keystore")
+            storePassword = "999000pL"
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

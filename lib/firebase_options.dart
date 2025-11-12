@@ -64,7 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '405952516189',
     projectId: 'mysterious-santa',
     storageBucket: 'mysterious-santa.firebasestorage.app',
-    iosBundleId: 'com.example.epamms',
+    iosBundleId: 'news.afisha.mysterioussanta',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -73,7 +73,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '405952516189',
     projectId: 'mysterious-santa',
     storageBucket: 'mysterious-santa.firebasestorage.app',
-    iosBundleId: 'com.example.epamms',
+    iosBundleId: 'news.afisha.mysterioussanta',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

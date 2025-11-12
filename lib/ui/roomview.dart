@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:epamms/ui/room.dart';
 import 'package:epamms/ui/snack_bar.dart';
@@ -30,6 +31,7 @@ class _RoomViewState extends State<RoomViewUI> {
   String title = '';
   String description = '';
   String exchangeDate = '';
+  String budget = '';
   bool isOwner = false;
   int clientsCount = 0;
   bool isParticipant = false;
@@ -50,6 +52,7 @@ class _RoomViewState extends State<RoomViewUI> {
 
   void _load() async {
     try {
+      FirebaseAnalytics.instance.logEvent(name: 'roomview');
       final response = await API.getRoom(widget.roomId);
       if (!mounted) return;
       if (response.statusCode != 200) {
@@ -61,6 +64,7 @@ class _RoomViewState extends State<RoomViewUI> {
       title = res['title'];
       description = res['desc'];
       exchangeDate = res['exchangeDate'];
+      budget = res['budget'].toString();
       if (exchangeDate == '') {
         exchangeDate = 'Not specified'.ii();
       }
@@ -172,6 +176,9 @@ class _RoomViewState extends State<RoomViewUI> {
                           Text('Exchange date: ${exchangeDate}',
                               style: TextStyle(fontSize: 16)),
                           SizedBox(height: 2),
+                          Text('Budget: ${budget}',
+                              style: TextStyle(fontSize: 16)),
+                          SizedBox(height: 2),
                           Text(
                               'Players count:  '.ii() + clientsCount.toString(),
                               style: TextStyle(fontSize: 16)),
@@ -221,6 +228,7 @@ class _RoomViewState extends State<RoomViewUI> {
       if (response.statusCode != 200) {
         throw Exception(API.httpErr + response.statusCode.toString());
       }
+      debugPrint("response.body=" + response.body);
       final res = jsonDecode(response.body);
       if (res['result'] == 'ok') {
         setState(() {
@@ -340,6 +348,7 @@ class _RoomViewState extends State<RoomViewUI> {
           ListView.builder(
             shrinkWrap: true,
             itemCount: wishes.length,
+            physics: NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               final itemMap = wishes[index];
               return Row(
@@ -402,7 +411,7 @@ class _RoomViewState extends State<RoomViewUI> {
       }
 
       final RenderRepaintBoundary boundary = renderObject;
-      final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      final ui.Image image = await boundary.toImage(pixelRatio: 2.0);
       final ByteData? byteData =
           await image.toByteData(format: ui.ImageByteFormat.png);
       if (byteData == null) {
@@ -413,7 +422,7 @@ class _RoomViewState extends State<RoomViewUI> {
       final Uint8List pngBytes = byteData.buffer.asUint8List();
 
       // Используем MethodChannel для копирования изображения в буфер обмена
-      const platform = MethodChannel('com.epamms/clipboard');
+      const platform = MethodChannel('com.mysterioussanta/clipboard');
       await platform.invokeMethod('copyImage', {'image': pngBytes});
 
       if (mounted) {
