@@ -1,5 +1,93 @@
-EN,UA,GE,ES,FR
-Mysterious Santa,Таємний Санта,მისტიკური სანტა,Santa Misterioso,Santa Mysterieux
-New room,Нова кімната,ახალი ოთახი,Nueva sala,Nouvelle salle
-Settings,Налаштування,პარამეტრები,Configuración,Paramètres
-
+EN,UK,DE,ES,FR,IT,PL,PT,TR
+Are you sure?,Ви впевнені?,Sind Sie sicher?,¿Estás seguro?,Êtes-vous sûr?,Sei sicuro?,Czy jesteś pewny?,Tem certeza?,Emin misiniz?
+Do you want to exit the app?,Ви хочете вийти з додатку?,Möchten Sie die App verlassen?,¿Quieres salir de la aplicación?,Voulez-vous quitter l'application?,Vuoi uscire dall'app?,Czy chcesz wyjść z aplikacji?,Quer sair do aplicativo?,Uygulamadan çıkmak istiyor musunuz?
+No,Ні,Nein,No,Non,No,Nie,Não,Hayır
+Yes,Так,Ja,Sí,Oui,Sì,Tak,Sim,Evet
+Mysterious Santa,Таємничий Санта,Geheimnisvoller Weihnachtsmann,Santa Misterioso,Père Noël Mystérieux,Babbo Natale Misterioso,Tajemniczy Święty Mikołaj,Papai Noel Misterioso,Gizemli Noel Baba
+All rooms,Всі кімнати,Alle Räume,Todas las salas,Toutes les salles,Tutte le stanze,Wszystkie pokoje,Todos os quartos,Tüm odalar
+Rooms I participate in,Кімнати в яких я беру участь,Räume an denen ich teilnehme,Salas en las que participo,Salles auxquelles je participe,Stanze a cui partecipo,Pokoje w których uczestniczę,Quartos em que participo,Katıldığım odalar
+Rooms I own,Мої кімнати,Meine Räume,Mis salas,Mes salles,Le mie stanze,Moje pokoje,Meus quartos,Sahip olduğum odalar
+New room,Нова кімната,Neuer Raum,Nueva sala,Nouvelle salle,Nuova stanza,Nowy pokój,Novo quarto,Yeni oda
+You are not logged in,Ви не увійшли в систему,Sie sind nicht angemeldet,No has iniciado sesión,Vous n'êtes pas connecté,Non sei connesso,Nie jesteś zalogowany,Você não está logado,Giriş yapmadınız
+Room to search (not implemented yet),Пошук кімнати (ще не реалізовано),Raum zu suchen (noch nicht implementiert),Sala para buscar (aún no implementado),Salle à rechercher (pas encore implémenté),Stanza da cercare (non ancora implementato),Pokój do wyszukania (jeszcze nie zaimplementowane),Quarto para pesquisar (ainda não implementado),Aranacak oda (henüz uygulanmadı)
+No rooms found 😔,Кімнати не знайдено 😔,Keine Räume gefunden 😔,No se encontraron salas 😔,Aucune salle trouvée 😔,Nessuna stanza trovata 😔,Nie znaleziono pokojów 😔,Nenhum quarto encontrado 😔,Oda bulunamadı 😔
+Not specified,Не вказано,Nicht angegeben,No especificado,Non spécifié,Non specificato,Nie określono,Não especificado,Belirtilmemiş
+Game Room,Ігрова кімната,Spielzimmer,Sala de juego,Salle de jeu,Sala giochi,Pokój gier,Sala de jogos,Oyun odası
+Players count,Кількість гравців,Anzahl der Spieler,Número de jugadores,Nombre de joueurs,Numero di giocatori,Liczba graczy:,Número de jogadores,Oyuncu sayısı
+Hobbies,Хобі,Hobbys,Aficiones,Loisirs,Hobby,Hobby,Hobbies,Hobiler
+Wishes,Бажання,Wünsche,Deseos,Souhaits,Desideri,Życzenia,Desejos,Dilekler
+Failed to capture QR code,Не вдалося захопити QR код,QR-Code konnte nicht erfasst werden,Error al capturar el código QR,Échec de la capture du code QR,Impossibile catturare il codice QR,Nie udało się przechwycić kodu QR,Falha ao capturar código QR,QR kodu yakalanamadı
+Failed to convert QR code,Не вдалося конвертувати QR код,QR-Code konnte nicht konvertiert werden,Error al convertir el código QR,Échec de la conversion du code QR,Impossibile convertire il codice QR,Nie udało się przekonwertować kodu QR,Falha ao converter código QR,QR kodu dönüştürülemedi
+QR code copied to clipboard,QR код скопійовано в буфер обміну,QR-Code in die Zwischenablage kopiert,Código QR copiado al portapapeles,Code QR copié dans le presse-papiers,Codice QR copiato negli appunti,Kod QR skopiowany do schowka,Código QR copiado para a área de transferência,QR kodu panoya kopyalandı
+Failed to copy QR code:,Не вдалося скопіювати QR код:,QR-Code konnte nicht kopiert werden:,Error al copiar el código QR:,Échec de la copie du code QR:,Impossibile copiare il codice QR:,Nie udało się skopiować kodu QR:,Falha ao copiar código QR:,QR kodu kopyalanamadı:
+Tap QR code to copy to clipboard,Торкніться QR коду щоб скопіювати,Tippen Sie auf den QR-Code zum Kopieren,Toca el código QR para copiar,Appuyez sur le code QR pour copier,Tocca il codice QR per copiare,Dotknij kod QR aby skopiować,Toque no código QR para copiar,Kopyalamak için QR koduna dokunun
+Scan QR code to join the game,Відскануйте QR код щоб приєднатися,Scannen Sie den QR-Code zum Beitreten,Escanea el código QR para unirte,Scannez le code QR pour rejoindre,Scansiona il codice QR per unirti,Zeskanuj kod QR aby dołączyć,Escaneie o código QR para participar,Oyuna katılmak için QR kodunu tarayın
+About,Про додаток,Über,Acerca de,À propos,Informazioni,O aplikacji,Sobre,Hakkında
+Edit room,Редагувати кімнату,Raum bearbeiten,Editar sala,Modifier la salle,Modifica stanza,Edytuj pokój,Editar quarto,Odayı düzenle
+Active,Активна,Aktiv,Activo,Actif,Attivo,Aktywny,Ativo,Aktif
+Room title,Назва кімнати,Raumtitel,Título de la sala,Titre de la salle,Titolo della stanza,Tytuł pokoju,Título do quarto,Oda başlığı
+Description,Опис,Beschreibung,Descripción,Description,Descrizione,Opis,Descrição,Açıklama
+Budget,Бюджет,Budget,Presupuesto,Budget,Budget,Budżet,Orçamento,Bütçe
+Exchange date,Дата обміну,Austauschtermin,Fecha de intercambio,Date d'échange,Data di scambio,Data wymiany,Data de troca,Değişim tarihi
+Enter a name of your room!,Введіть назву вашої кімнати!,Geben Sie einen Namen für Ihren Raum ein!,¡Ingresa un nombre para tu sala!,Entrez un nom pour votre salle!,Inserisci un nome per la tua stanza!,Wprowadź nazwę swojego pokoju!,Digite um nome para seu quarto!,Odanız için bir isim girin!
+Room saved successfully!,Кімната успішно збережена!,Raum erfolgreich gespeichert!,¡Sala guardada exitosamente!,Salle sauvegardée avec succès!,Stanza salvata con successo!,Pokój zapisany pomyślnie!,Quarto salvo com sucesso!,Oda başarıyla kaydedildi!
+Delete recipient?,Видалити отримувача?,Empfänger löschen?,¿Eliminar destinatario?,Supprimer le destinataire?,Eliminare il destinatario?,Usunąć odbiorcę?,Excluir destinatário?,Alıcıyı sil?
+You need at least 2 participants to randomize the room!,Вам потрібно щонайменше 2 учасники щоб рандомізувати кімнату!,Sie benötigen mindestens 2 Teilnehmer um den Raum zu randomisieren!,¡Necesitas al menos 2 participantes para aleatorizar la sala!,Vous avez besoin d'au moins 2 participants pour randomiser la salle!,Hai bisogno di almeno 2 partecipanti per randomizzare la stanza!,Potrzebujesz co najmniej 2 uczestników aby zrandomizować pokój!,Você precisa de pelo menos 2 participantes para aleatorizar o quarto!,Odayı rastgele hale getirmek için en az 2 katılımcıya ihtiyacınız var!
+Room randomized successfully!,Кімната успішно рандомізована!,Raum erfolgreich randomisiert!,¡Sala aleatorizada exitosamente!,Salle randomisée avec succès!,Stanza randomizzata con successo!,Pokój zrandomizowany pomyślnie!,Quarto aleatorizado com sucesso!,Oda başarıyla rastgele hale getirildi!
+Recipient deleted successfully!,Отримувач успішно видалений!,Empfänger erfolgreich gelöscht!,¡Destinatario eliminado exitosamente!,Destinataire supprimé avec succès!,Destinatario eliminato con successo!,Odbiorca usunięty pomyślnie!,Destinatário excluído com sucesso!,Alıcı başarıyla silindi!
+Profile,Профіль,Profil,Perfil,Profil,Profilo,Profil,Perfil,Profil
+Logout,Вийти,Abmelden,Cerrar sesión,Se déconnecter,Disconnettersi,Wyloguj,Sair,Çıkış yap
+Login,Увійти,Anmelden,Iniciar sesión,Se connecter,Accedere,Zaloguj,Entrar,Giriş yap
+Login or register to your account,Увійдіть або зареєструйтеся,Melden Sie sich an oder registrieren Sie sich,Inicia sesión o regístrate,Connectez-vous ou inscrivez-vous,Accedi o registrati,Zaloguj się lub zarejestruj,Entre ou registre-se,Giriş yapın veya kayıt olun
+QR code for room,QR код для кімнати,QR-Code für Raum,Código QR para sala,Code QR pour la salle,Codice QR per la stanza,Kod QR dla pokoju,Código QR para quarto,Oda için QR kodu
+Settings,Налаштування,Einstellungen,Configuraciones,Paramètres,Impostazioni,Ustawienia,Configurações,Ayarlar
+Delete account ...,Видалити акаунт ...,Konto löschen ...,Eliminar cuenta ...,Supprimer le compte ...,Eliminare l'account ...,Usuń konto ...,Excluir conta ...,Hesabı sil ...
+Warning,Попередження,Warnung,Advertencia,Avertissement,Avviso,Ostrzeżenie,Aviso,Uyarı
+Are you sure you want to delete your account?,Ви впевнені що хочете видалити свій акаунт?,Sind Sie sicher dass Sie Ihr Konto löschen möchten?,¿Estás seguro de que quieres eliminar tu cuenta?,Êtes-vous sûr de vouloir supprimer votre compte?,Sei sicuro di voler eliminare il tuo account?,Czy na pewno chcesz usunąć swoje konto?,Tem certeza de que deseja excluir sua conta?,Hesabınızı silmek istediğinizden emin misiniz?
+First name,Ім'я,Vorname,Nombre,Prénom,Nome,Imię,Primeiro nome,Ad
+Second name,Прізвище,Nachname,Apellido,Nom de famille,Cognome,Nazwisko,Sobrenome,Soyadı
+Phone number,Номер телефону,Telefonnummer,Número de teléfono,Numéro de téléphone,Numero di telefono,Numer telefonu,Número de telefone,Telefon numarası
+Sex,Стать,Geschlecht,Sexo,Sexe,Sesso,Płeć,Sexo,Cinsiyet
+Language,Мова,Sprache,Idioma,Langue,Lingua,Język,Idioma,Dil
+Year of birth,Рік народження,Geburtsjahr,Año de nacimiento,Année de naissance,Anno di nascita,Rok urodzenia,Ano de nascimento,Doğum yılı
+Hobby,Хобі,Hobby,Afición,Loisir,Hobby,Hobby,Hobby,Hobi
+Delivery service,Служба доставки,Lieferdienst,Servicio de entrega,Service de livraison,Servizio di consegna,Usługa dostawy,Serviço de entrega,Teslimat servisi
+Selfie?,Селфі?,Selfie?,¿Selfie?,Selfie?,Selfie?,Selfie?,Selfie?,Selfie?
+Tap to take a selfie,Торкніться щоб зробити селфі,Tippen Sie um ein Selfie zu machen,Toca para tomar una selfie,Appuyez pour prendre un selfie,Tocca per scattare un selfie,Dotknij aby zrobić selfie,Toque para tirar uma selfie,Selfie çekmek için dokunun
+My wishlist,Мій список бажань,Meine Wunschliste,Mi lista de deseos,Ma liste de souhaits,La mia lista dei desideri,Moja lista życzeń,Minha lista de desejos,Dilek listem
+Post index,Поштовий індекс,Postleitzahl,Código postal,Code postal,Codice postale,Kod pocztowy,Código postal,Posta kodu
+Address,Адреса,Adresse,Dirección,Adresse,Indirizzo,Adres,Endereço,Adres
+Area,Область,Bereich,Área,Zone,Area,Obszar,Área,Bölge
+City,Місто,Stadt,Ciudad,Ville,Città,Miasto,Cidade,Şehir
+Warehouse,Склад,Lager,Almacén,Entrepôt,Magazzino,Magazyn,Armazém,Depo
+Delete selfie?,Видалити селфі?,Selfie löschen?,¿Eliminar selfie?,Supprimer le selfie?,Eliminare il selfie?,Usunąć selfie?,Excluir selfie?,Selfie'yi sil?
+Are you sure you want to delete your selfie?,Ви впевнені що хочете видалити своє селфі?,Sind Sie sicher dass Sie Ihr Selfie löschen möchten?,¿Estás seguro de que quieres eliminar tu selfie?,Êtes-vous sûr de vouloir supprimer votre selfie?,Sei sicuro di voler eliminare il tuo selfie?,Czy na pewno chcesz usunąć swoje selfie?,Tem certeza de que deseja excluir sua selfie?,Selfie'nizi silmek istediğinizden emin misiniz?
+Cancel,Скасувати,Abbrechen,Cancelar,Annuler,Annulla,Anuluj,Cancelar,İptal
+Delete,Видалити,Löschen,Eliminar,Supprimer,Eliminare,Usuń,Excluir,Sil
+Delete your wish?,Видалити ваше бажання?,Ihren Wunsch löschen?,¿Eliminar tu deseo?,Supprimer votre souhait?,Eliminare il tuo desiderio?,Usunąć swoje życzenie?,Excluir seu desejo?,Dileğinizi sil?
+Are you sure you want to delete this wish?,Ви впевнені що хочете видалити це бажання?,Sind Sie sicher dass Sie diesen Wunsch löschen möchten?,¿Estás seguro de que quieres eliminar este deseo?,Êtes-vous sûr de vouloir supprimer ce souhait?,Sei sicuro di voler eliminare questo desiderio?,Czy na pewno chcesz usunąć to życzenie?,Tem certeza de que deseja excluir este desejo?,Bu dileği silmek istediğinizden emin misiniz?
+Register or login,Зареєструватися або увійти,Registrieren oder anmelden,Registrarse o iniciar sesión,S'inscrire ou se connecter,Registrarsi o accedere,Zarejestruj się lub zaloguj,Registrar ou entrar,Kayıt ol veya giriş yap
+Enter a valid email,Введіть дійсну електронну пошту,Geben Sie eine gültige E-Mail ein,Ingresa un email válido,Entrez un email valide,Inserisci un'email valida,Wprowadź prawidłowy email,Digite um email válido,Geçerli bir e-posta girin
+Email,Електронна пошта,E-Mail,Correo electrónico,E-mail,Email,Email,E-mail,E-posta
+Enter a valid password,Введіть дійсний пароль,Geben Sie ein gültiges Passwort ein,Ingresa una contraseña válida,Entrez un mot de passe valide,Inserisci una password valida,Wprowadź prawidłowe hasło,Digite uma senha válida,Geçerli bir şifre girin
+Password,Пароль,Passwort,Contraseña,Mot de passe,Password,Hasło,Senha,Şifre
+Enter a valid email and password,Введіть дійсну пошту та пароль,Geben Sie eine gültige E-Mail und ein Passwort ein,Ingresa un email y contraseña válidos,Entrez un email et un mot de passe valides,Inserisci un'email e una password valide,Wprowadź prawidłowy email i hasło,Digite um email e senha válidos,Geçerli bir e-posta ve şifre girin
+I forgot my password,Я забув свій пароль,Ich habe mein Passwort vergessen,Olvidé mi contraseña,J'ai oublié mon mot de passe,Ho dimenticato la mia password,Zapomniałem hasła,Esqueci minha senha,Şifremi unuttum
+Enter your e-mail!,Введіть вашу електронну пошту!,Geben Sie Ihre E-Mail ein!,¡Ingresa tu correo electrónico!,Entrez votre e-mail!,Inserisci la tua email!,Wprowadź swój e-mail!,Digite seu e-mail!,E-postanızı girin!
+Enter a valid e-mail!,Введіть дійсну електронну пошту!,Geben Sie eine gültige E-Mail ein!,¡Ingresa un correo electrónico válido!,Entrez un e-mail valide!,Inserisci un'email valida!,Wprowadź prawidłowy e-mail!,Digite um e-mail válido!,Geçerli bir e-posta girin!
+Wait for the e-mail with your password!,Чекайте на електронну пошту з вашим паролем!,Warten Sie auf die E-Mail mit Ihrem Passwort!,¡Espera el correo electrónico con tu contraseña!,Attendez l'e-mail avec votre mot de passe!,Aspetta l'email con la tua password!,Czekaj na e-mail z hasłem!,Aguarde o e-mail com sua senha!,Şifrenizin olduğu e-postayı bekleyin!
+Error,Помилка,Fehler,Error,Erreur,Errore,Błąd,Erro,Hata
+Wish,Бажання,Wunsch,Deseo,Souhait,Desiderio,Życzenie,Desejo,Dilek
+Title,Заголовок,Titel,Título,Titre,Titolo,Tytuł,Título,Başlık
+URL,URL,URL,URL,URL,URL,URL,URL,URL
+Theme,Тема,Thema,Tema,Thème,Tema,Motyw,Tema,Tema
+Light theme,Світла тема,Helles Thema,Tema claro,Thème clair,Tema chiaro,Jasny motyw,Tema claro,Açık tema
+Dark theme,Темна тема,Dunkles Thema,Tema oscuro,Thème sombre,Tema scuro,Ciemny motyw,Tema escuro,Koyu tema
+System theme,Системна тема,System-Thema,Tema del sistema,Thème système,Tema di sistema,Motyw systemowy,Tema do sistema,Sistem teması
+You are not in game yet,Ви ще не в грі,Sie sind noch nicht im Spiel,Aún no estás en el juego,Vous n'êtes pas encore dans le jeu,Non sei ancora nel gioco,Nie jesteś jeszcze w grze,Você ainda não está no jogo,Henüz oyunda değilsiniz
+Your recipient hasn't been selected yet,Ваш отримувач ще не обраний,Ihr Empfänger wurde noch nicht ausgewählt,Tu destinatario aún no ha sido seleccionado,Votre destinataire n'a pas encore été sélectionné,Il tuo destinatario non è ancora stato selezionato,Twój odbiorca nie został jeszcze wybrany,Seu destinatário ainda não foi selecionado,Alıcınız henüz seçilmedi
+Are you sure to remove this dictionary?,Ви впевнені що хочете видалити цей словник?,Sind Sie sicher dass Sie dieses Wörterbuch entfernen möchten?,¿Estás seguro de que quieres eliminar este diccionario?,Êtes-vous sûr de vouloir supprimer ce dictionnaire?,Sei sicuro di voler rimuovere questo dizionario?,Czy na pewno chcesz usunąć ten słownik?,Tem certeza de que deseja remover este dicionário?,Bu sözlüğü kaldırmak istediğinizden emin misiniz?
+Close,Закрити,Schließen,Cerrar,Fermer,Chiudi,Zamknij,Fechar,Kapat
+Message,Повідомлення,Nachricht,Mensaje,Message,Messaggio,Wiadomość,Mensagem,Mesaj
+Copy room link,Копіювати посилання на кімнату,Raumlink kopieren,Copiar enlace de sala,Copier le lien de la salle,Copia link stanza,Kopiuj link pokoju,Copiar link do quarto,Oda bağlantısını kopyala
+Room link copied to clipboard,Посилання на кімнату скопійовано,Raumlink in Zwischenablage kopiert,Enlace de sala copiado al portapapeles,Lien de salle copié dans le presse-papiers,Link stanza copiato negli appunti,Link pokoju skopiowany do schowka,Link do quarto copiado para área de transferência,Oda bağlantısı panoya kopyalandı

@@ -575,7 +575,7 @@ class _ProfileState extends State<ProfileUI> {
                     ? Image.file(_selfieImageFile!, fit: BoxFit.cover)
                     : (profile['photo'] != null && profile['photo'] == true
                         ? Image.network(
-                            'https://ms.afisha.news/photo.php?id=${profile['id']}',
+                            'https://mysterioussanta.afisha.news/photo.php?id=${profile['id']}',
                             fit: BoxFit.cover)
                         : Image.asset('images/user.png', fit: BoxFit.cover)),
               ),

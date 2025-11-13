@@ -140,7 +140,7 @@ class _HomeState extends State<HomeUI> {
 
   @override
   Widget build(BuildContext context) {
-    final state = Provider.of<AppState>(context, listen: false);
+    final state = Provider.of<AppState>(context, listen: true);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? result) {

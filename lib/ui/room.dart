@@ -6,7 +6,6 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
 import '../api.dart';
@@ -321,11 +320,11 @@ class _RoomState extends State<RoomUI> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Warning'),
-          content: Text("Are you sure to remove this dictionary?"),
+          title: Text('Warning'.ii()),
+          content: Text("Are you sure to remove this dictionary?".ii()),
           actions: <Widget>[
             ElevatedButton(
-              child: Text('Yes'),
+              child: Text('Yes'.ii()),
               onPressed: () async {
                 Map dict = {};
                 dict['id'] = widget.roomId;
@@ -336,7 +335,7 @@ class _RoomState extends State<RoomUI> {
               },
             ),
             ElevatedButton(
-              child: Text('No'),
+              child: Text('No'.ii()),
               onPressed: () => Navigator.pop(context),
             ),
           ],
@@ -374,11 +373,11 @@ class _RoomState extends State<RoomUI> {
                               .ii()),
                       actions: <Widget>[
                         ElevatedButton(
-                          child: Text('Yes'),
+                          child: Text('Yes'.ii()),
                           onPressed: () => Navigator.pop(context, true),
                         ),
                         ElevatedButton(
-                          child: Text('No'),
+                          child: Text('No'.ii()),
                           onPressed: () => Navigator.pop(context, false),
                         ),
                       ],
@@ -404,7 +403,7 @@ class _RoomState extends State<RoomUI> {
                     child: (recipient['photo'] != null &&
                             recipient['photo'] == true
                         ? Image.network(
-                            'https://ms.afisha.news/photo.php?id=${recipient['id']}',
+                            'https://mysterioussanta.afisha.news/photo.php?id=${recipient['id']}',
                             fit: BoxFit.cover)
                         : Image.asset('images/user.png', fit: BoxFit.cover)),
                   ),

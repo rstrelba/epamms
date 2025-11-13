@@ -6,6 +6,80 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Централизованный список поддерживаемых языков
+class SupportedLanguages {
+  static const List<Map<String, String>> languages = [
+    {
+      'code': 'EN',
+      'name': 'English',
+      'nativeName': 'English',
+    },
+    {
+      'code': 'UK',
+      'name': 'Ukrainian',
+      'nativeName': 'Українська',
+    },
+    {
+      'code': 'DE',
+      'name': 'German',
+      'nativeName': 'Deutsch',
+    },
+    {
+      'code': 'ES',
+      'name': 'Spanish',
+      'nativeName': 'Español',
+    },
+    {
+      'code': 'FR',
+      'name': 'French',
+      'nativeName': 'Français',
+    },
+    {
+      'code': 'IT',
+      'name': 'Italian',
+      'nativeName': 'Italiano',
+    },
+    {
+      'code': 'PL',
+      'name': 'Polish',
+      'nativeName': 'Polski',
+    },
+    {
+      'code': 'PT',
+      'name': 'Portuguese',
+      'nativeName': 'Português',
+    },
+    {
+      'code': 'TR',
+      'name': 'Turkish',
+      'nativeName': 'Türkçe',
+    },
+  ];
+
+  static List<String> get codes =>
+      languages.map((lang) => lang['code']!).toList();
+  static List<String> get names =>
+      languages.map((lang) => lang['name']!).toList();
+  static List<String> get nativeNames =>
+      languages.map((lang) => lang['nativeName']!).toList();
+
+  static String getNameByCode(String code) {
+    final lang = languages.firstWhere(
+      (lang) => lang['code'] == code,
+      orElse: () => languages.first,
+    );
+    return lang['name']!;
+  }
+
+  static String getNativeNameByCode(String code) {
+    final lang = languages.firstWhere(
+      (lang) => lang['code'] == code,
+      orElse: () => languages.first,
+    );
+    return lang['nativeName']!;
+  }
+}
+
 class TranslationService {
   static final TranslationService _instance = TranslationService._internal();
   factory TranslationService() => _instance;
@@ -17,8 +91,8 @@ class TranslationService {
   String _currentLanguage = 'EN';
   bool _isInitialized = false;
 
-  // Список доступных языков из CSV заголовка
-  List<String> _availableLanguages = [];
+  // Список доступных языков берем из SupportedLanguages
+  List<String> get availableLanguages => SupportedLanguages.codes;
 
   static TranslationService get instance => _instance;
 
@@ -45,7 +119,7 @@ class TranslationService {
     try {
       final csvContent = await rootBundle.loadString('assets/intl.csv');
 
-      // Всегда парсим CSV для получения списка языков
+      // Парсим CSV только для переводов
       _parseCSV(csvContent);
     } catch (e) {
       debugPrint('Error loading translations from assets: $e');
@@ -63,18 +137,11 @@ class TranslationService {
     final lines = csvContent.split('\n');
 
     if (lines.isEmpty) {
-      _availableLanguages = ['EN', 'UA', 'GE', 'ES', 'FR'];
       return;
     }
 
     // Парсим заголовок
     final header = _parseCSVLine(lines[0]);
-
-    // Сохраняем доступные языки
-    _availableLanguages = header.map((lang) {
-      String cleanLang = lang.trim().toUpperCase();
-      return cleanLang;
-    }).toList();
 
     // Для английского языка переводы не нужны
     if (_currentLanguage == 'EN') {
@@ -105,31 +172,23 @@ class TranslationService {
     // Очищаем переводы
     _translations.clear();
     int parsedCount = 0;
-    int skippedCount = 0;
 
     // Парсим строки данных
     for (int i = 1; i < lines.length; i++) {
       if (lines[i].trim().isEmpty) {
-        skippedCount++;
         continue;
       }
 
       final values = _parseCSVLine(lines[i]);
       if (values.length > languageIndex && values.length > 0) {
-        final englishText =
-            values[0]; // Английский текст всегда в первой колонке
-        final translation = values[languageIndex]; // Перевод в нужной колонке
-
+        final englishText = values[0]; // english first
+        final translation = values[languageIndex];
         if (englishText.isNotEmpty && translation.isNotEmpty) {
-          // Создаем хэш английской фразы
+          // create hash of english phrase
           final hash = _generateKey(englishText);
           _translations[hash] = translation;
           parsedCount++;
-        } else {
-          skippedCount++;
         }
-      } else {
-        skippedCount++;
       }
     }
 
@@ -222,9 +281,6 @@ class TranslationService {
 
   // Метод для получения статистики
   int get translationsCount => _translations.length;
-
-  // Геттер для доступных языков
-  List<String> get availableLanguages => List<String>.from(_availableLanguages);
 }
 
 // Extension для интернационализации строк

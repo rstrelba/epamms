@@ -12,6 +12,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../api.dart';
 import '../state.dart';
@@ -174,14 +175,16 @@ class _RoomViewState extends State<RoomViewUI> {
                           SizedBox(height: 2),
                           Text(description, style: TextStyle(fontSize: 16)),
                           SizedBox(height: 2),
-                          Text('Exchange date: ${exchangeDate}',
+                          Text('Exchange date'.ii() + ': ${exchangeDate}',
                               style: TextStyle(fontSize: 16)),
                           SizedBox(height: 2),
-                          Text('Budget: ${budget}',
+                          Text('Budget'.ii() + ': ${budget}',
                               style: TextStyle(fontSize: 16)),
                           SizedBox(height: 2),
                           Text(
-                              'Players count:  '.ii() + clientsCount.toString(),
+                              'Players count'.ii() +
+                                  ': ' +
+                                  clientsCount.toString(),
                               style: TextStyle(fontSize: 16)),
                         ],
                       ),
@@ -250,9 +253,11 @@ class _RoomViewState extends State<RoomViewUI> {
   }
 
   _buildRecipient(context) {
-    if (!isParticipant) return Center(child: Text('Your are not in game yet'));
+    if (!isParticipant)
+      return Center(child: Text('You are not in game yet'.ii()));
     if (recipient == 0)
-      return Center(child: Text('Your recipient haven\'t been selected yet'));
+      return Center(
+          child: Text('Your recipient hasn\'t been selected yet'.ii()));
     final sex = recipientInfo['sex'];
     final year = recipientInfo['year'];
     final all = '($sex, $year y.o.)';
@@ -443,6 +448,26 @@ class _RoomViewState extends State<RoomViewUI> {
     }
   }
 
+  Future<void> _copyRoomLinkToClipboard() async {
+    try {
+      final roomLink =
+          'https://mysterioussanta.afisha.news/room/' + roomId.toString();
+      await Clipboard.setData(ClipboardData(text: roomLink));
+
+      final params = ShareParams(uri: Uri.parse(roomLink), subject: title);
+      SharePlus.instance.share(params);
+
+      if (mounted) {
+        //showSnackBar(context, 'Room link copied to clipboard'.ii());
+      }
+    } catch (e) {
+      debugPrint('Error copying room link: $e');
+      if (mounted) {
+        showErrSnackBar(context, 'Failed to copy room link: ${e.toString()}');
+      }
+    }
+  }
+
   _buildQR() {
     if (recipient != 0) return SizedBox.shrink();
     return Column(
@@ -456,8 +481,8 @@ class _RoomViewState extends State<RoomViewUI> {
               child: RepaintBoundary(
                 key: _qrKey,
                 child: QrImageView(
-                  data:
-                      'https://ms.afisha.news/room.php?id=' + roomId.toString(),
+                  data: 'https://mysterioussanta.afisha.news/room/' +
+                      roomId.toString(),
                   version: QrVersions.auto,
                   backgroundColor:
                       Theme.of(context).brightness == Brightness.dark
@@ -487,6 +512,15 @@ class _RoomViewState extends State<RoomViewUI> {
                   ? Colors.grey[400]
                   : Colors.grey,
             )),
+        SizedBox(height: 15),
+        ElevatedButton.icon(
+          onPressed: _copyRoomLinkToClipboard,
+          icon: Icon(EvaIcons.link2),
+          label: Text('Copy room link'.ii()),
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          ),
+        ),
       ],
     );
   }

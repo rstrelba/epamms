@@ -253,7 +253,7 @@ class _LoginState extends State<LoginUI> {
           content: Text(err),
           actions: <Widget>[
             ElevatedButton(
-              child: const Text('Close'),
+              child: Text('Close'.ii()),
               onPressed: () => Navigator.pop(context),
             ),
           ],
@@ -268,11 +268,11 @@ class _LoginState extends State<LoginUI> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Message'),
+          title: Text('Message'.ii()),
           content: Text(err),
           actions: <Widget>[
             ElevatedButton(
-              child: const Text('Close'),
+              child: Text('Close'.ii()),
               onPressed: () => Navigator.pop(context),
             ),
           ],

@@ -163,3 +163,6 @@ To exercise these rights, please contact us using the information provided above
 ---
 
 This Privacy Policy is effective as of the date stated above and governs the use of the Mysterious Santa application.
+
+
+

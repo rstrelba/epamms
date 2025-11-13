@@ -1,5 +1,4 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:epamms/state.dart';
 import 'package:provider/provider.dart';
@@ -35,19 +34,8 @@ class _SettingsState extends State<SettingsUI> {
   }
 
   void _loadAvailableLanguages() {
-    final languages = TranslationService.instance.availableLanguages;
-
     setState(() {
-      // If the service hasn't loaded languages, use fallback
-      if (languages.isEmpty) {
-        _availableLanguages = ['EN', 'UA', 'GE', 'ES', 'FR'];
-      } else {
-        // Fix possible parsing problems
-        _availableLanguages = languages.map((lang) {
-          String cleanLang = lang.trim();
-          return cleanLang;
-        }).toList();
-      }
+      _availableLanguages = SupportedLanguages.codes;
     });
   }
 
@@ -62,8 +50,9 @@ class _SettingsState extends State<SettingsUI> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('lang', language);
 
-    // Update language in translation service
-    await TranslationService.instance.setLanguage(language);
+    // Update language in translation service and notify all widgets
+    final state = Provider.of<AppState>(context, listen: false);
+    await state.updateLanguage(language);
 
     setState(() {
       _selectedLanguage = language;
@@ -162,23 +151,7 @@ class _SettingsState extends State<SettingsUI> {
 
   // Метод для получения человеко-читаемого названия языка
   String _getLanguageName(String languageCode) {
-    // Принудительная очистка и нормализация
-    String cleanCode = languageCode.trim().toUpperCase();
-
-    switch (cleanCode) {
-      case 'EN':
-        return 'English';
-      case 'UA':
-        return 'Українська';
-      case 'GE':
-        return 'Deutsch';
-      case 'ES':
-        return 'Español';
-      case 'FR':
-        return 'Français';
-      default:
-        return languageCode; // return original code
-    }
+    return SupportedLanguages.getNativeNameByCode(languageCode);
   }
 
   Future<void> saveTheme(int theme) async {

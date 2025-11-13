@@ -33,7 +33,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https"
-                      android:host="ms.afisha.news" />
+                      android:host="mysterioussanta.afisha.news" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

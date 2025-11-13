@@ -13,6 +13,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api.dart';
+import 'ii.dart';
 
 class AppState with ChangeNotifier {
   static String? initialUri = "";
@@ -157,6 +158,12 @@ class AppState with ChangeNotifier {
 
   String getVersion() {
     return 'version $appVersion';
+  }
+
+  // Метод для обновления языка и уведомления всех слушателей
+  Future<void> updateLanguage(String language) async {
+    await TranslationService.instance.setLanguage(language);
+    notifyListeners(); // Уведомляем все виджеты об изменении
   }
 
   /*
