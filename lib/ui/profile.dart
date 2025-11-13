@@ -571,13 +571,9 @@ class _ProfileState extends State<ProfileUI> {
               child: SizedBox(
                 width: 300,
                 height: 300,
-                child: _selfieImageFile != null
-                    ? Image.file(_selfieImageFile!, fit: BoxFit.cover)
-                    : (profile['photo'] != null && profile['photo'] == true
-                        ? Image.network(
-                            'https://mysterioussanta.afisha.news/photo.php?id=${profile['id']}',
-                            fit: BoxFit.cover)
-                        : Image.asset('images/user.png', fit: BoxFit.cover)),
+                child: (profile['photo'].isNotEmpty
+                    ? Image.network(profile['photo'], fit: BoxFit.cover)
+                    : Image.asset('images/user.png', fit: BoxFit.cover)),
               ),
             ),
           ),
@@ -625,6 +621,7 @@ class _ProfileState extends State<ProfileUI> {
         final photoResponse = await API.putPhoto({
           'photo': base64Image,
         });
+        profile['photo'] = API.dbPhotoUrl + profile['id'].toString();
 
         if (photoResponse.statusCode != 200) {
           throw Exception(API.httpErr + photoResponse.statusCode.toString());

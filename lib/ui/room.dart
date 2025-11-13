@@ -14,10 +14,10 @@ import '../state.dart';
 import '../ii.dart';
 
 class RoomUI extends StatefulWidget {
-  final int roomId;
+  final String roomSecret;
   @override
   State<StatefulWidget> createState() => _RoomState();
-  RoomUI({super.key, required this.roomId});
+  RoomUI({super.key, required this.roomSecret});
 }
 
 class _RoomState extends State<RoomUI> {
@@ -27,6 +27,7 @@ class _RoomState extends State<RoomUI> {
   TextEditingController? _budgetController;
   List<dynamic> langs = [];
   int roomId = 0;
+  String roomSecret = '';
   int clientsCount = 0;
   bool isVisible = false;
   DateTime? exchangeDate;
@@ -52,7 +53,7 @@ class _RoomState extends State<RoomUI> {
   void _load() async {
     try {
       FirebaseAnalytics.instance.logEvent(name: 'roomedit');
-      final response = await API.getRoom(widget.roomId);
+      final response = await API.getRoom(widget.roomSecret);
       if (response.statusCode != 200) {
         throw Exception(API.httpErr + response.statusCode.toString());
       }
@@ -62,6 +63,7 @@ class _RoomState extends State<RoomUI> {
       final res = jsonDecode(response.body);
       recipients = res['recipients'];
       roomId = res['roomId'];
+      roomSecret = res['secret'];
       _titleController.text = res['title'] ?? '';
       _descriptionController.text = res['desc'] ?? '';
       _budgetController?.text = (res['budget'] ?? 0).toString();
@@ -97,7 +99,8 @@ class _RoomState extends State<RoomUI> {
           title: Text("Edit room".ii()),
           centerTitle: true,
         ),
-        backgroundColor: Colors.transparent,
+        //backgroundColor: Colors.transparent,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         floatingActionButton: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -114,7 +117,7 @@ class _RoomState extends State<RoomUI> {
                 height: 10,
               ),
               Visibility(
-                visible: widget.roomId > 0,
+                visible: widget.roomSecret.isNotEmpty,
                 child: FloatingActionButton(
                   heroTag: 'doRemove',
                   onPressed: () => _doRemove(context),
@@ -158,6 +161,12 @@ class _RoomState extends State<RoomUI> {
                 Text('Active'.ii())
               ],
             ),
+            Text('Public rooms available for all users'.ii(),
+                style: TextStyle(fontSize: 12)),
+            Text(
+                'Private rooms available for only invited users (by link or qr code)'
+                    .ii(),
+                style: TextStyle(fontSize: 12)),
             TextField(
                 //autofocus: true,
                 controller: _titleController,
@@ -301,8 +310,7 @@ class _RoomState extends State<RoomUI> {
       debugPrint("PUT ROOM=" + res.toString());
       if (!mounted) return;
       showSnackBar(context, "Room saved successfully!".ii());
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (_) => HomeUI()));
+      Navigator.pop(context, true);
     } catch (e) {
       showErrSnackBar(context, e.toString());
     } finally {
@@ -314,35 +322,24 @@ class _RoomState extends State<RoomUI> {
 
   Future _doRemove(BuildContext context) async {
     //
-    var state = Provider.of<AppState>(context);
-    showDialog<void>(
-      //barrierDismissible: false,
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Warning'.ii()),
-          content: Text("Are you sure to remove this dictionary?".ii()),
-          actions: <Widget>[
-            ElevatedButton(
-              child: Text('Yes'.ii()),
-              onPressed: () async {
-                Map dict = {};
-                dict['id'] = widget.roomId;
-
-                var response = await API.putRoom(dict);
-                debugPrint(response.body);
-                var res = jsonDecode(response.body);
-              },
-            ),
-            ElevatedButton(
-              child: Text('No'.ii()),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
-        );
-      },
-    ).then((value) => Navigator.pushReplacement(
-        context, CupertinoPageRoute(builder: (_) => HomeUI())));
+    if (!await showYesNoDialog(
+        context, "Are you sure to remove this room?".ii())) {
+      return;
+    }
+    try {
+      final response = await API.delRoom(roomId);
+      if (response.statusCode != 200) {
+        throw Exception(API.httpErr + response.statusCode.toString());
+      }
+      debugPrint(response.body);
+      final res = jsonDecode(response.body);
+      debugPrint("DEL ROOM=" + res.toString());
+      showSnackBar(context, "Room removed successfully!".ii());
+      Navigator.pushReplacement(
+          context, CupertinoPageRoute(builder: (_) => HomeUI()));
+    } catch (e) {
+      showErrSnackBar(context, e.toString());
+    }
   }
 
   Widget _buildRecipients(context) {
@@ -352,65 +349,65 @@ class _RoomState extends State<RoomUI> {
       physics: NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         final recipient = recipients[index];
-        final rcpName = recipient['name'].length > 5
+        final rcpName = recipient['name'].isNotEmpty
             ? recipient['name']
             : recipient['email'];
-        return Dismissible(
-          key: Key(recipient['id'].toString()),
-          onDismissed: (direction) {
-            _doDelFromRoom(context, recipient['id']);
-            setState(() {
-              recipients.removeAt(index);
-            });
-          },
-          confirmDismiss: (direction) async {
-            return await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                      title: Text('Delete recipient?'.ii()),
-                      content: Text(
-                          'Are you sure you want to delete this recipient?'
-                              .ii()),
-                      actions: <Widget>[
-                        ElevatedButton(
-                          child: Text('Yes'.ii()),
-                          onPressed: () => Navigator.pop(context, true),
-                        ),
-                        ElevatedButton(
-                          child: Text('No'.ii()),
-                          onPressed: () => Navigator.pop(context, false),
-                        ),
-                      ],
-                    ));
-          },
-          child: GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) =>
-                        ProfileUI(isReadOnly: true, id: recipient['id'])),
-              );
+        return Container(
+          padding: EdgeInsets.only(bottom: 10),
+          child: Dismissible(
+            key: Key(recipient['id'].toString()),
+            onDismissed: (direction) {
+              _doDelFromRoom(context, recipient['id']);
+              setState(() {
+                recipients.removeAt(index);
+              });
             },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                ClipOval(
-                  child: SizedBox(
-                    width: 50,
-                    height: 50,
-                    child: (recipient['photo'] != null &&
-                            recipient['photo'] == true
-                        ? Image.network(
-                            'https://mysterioussanta.afisha.news/photo.php?id=${recipient['id']}',
-                            fit: BoxFit.cover)
-                        : Image.asset('images/user.png', fit: BoxFit.cover)),
+            confirmDismiss: (direction) async {
+              return await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                        title: Text('Delete recipient?'.ii()),
+                        content: Text(
+                            'Are you sure you want to delete this recipient?'
+                                .ii()),
+                        actions: <Widget>[
+                          ElevatedButton(
+                            child: Text('Yes'.ii()),
+                            onPressed: () => Navigator.pop(context, true),
+                          ),
+                          ElevatedButton(
+                            child: Text('No'.ii()),
+                            onPressed: () => Navigator.pop(context, false),
+                          ),
+                        ],
+                      ));
+            },
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) =>
+                          ProfileUI(isReadOnly: true, id: recipient['id'])),
+                );
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ClipOval(
+                    child: SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: recipient['photo'].isNotEmpty
+                          ? Image.network(recipient['photo'], fit: BoxFit.cover)
+                          : Image.asset('images/user.png', fit: BoxFit.cover),
+                    ),
                   ),
-                ),
-                SizedBox(width: 10),
-                Text(rcpName),
-              ],
+                  SizedBox(width: 10),
+                  Text(rcpName),
+                ],
+              ),
             ),
           ),
         );

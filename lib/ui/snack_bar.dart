@@ -1,3 +1,4 @@
+import 'package:epamms/ii.dart';
 import 'package:flutter/material.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/tap_bounce_container.dart';
@@ -21,6 +22,28 @@ void showErrSnackBar(BuildContext context, String message) {
       message: message,
     ),
   );
+}
+
+Future<bool> showYesNoDialog(BuildContext context, String text) async {
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title:
+          Text('Warning'.ii(), style: Theme.of(context).textTheme.titleLarge),
+      content: Text(text),
+      actions: [
+        ElevatedButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text('No'.ii()),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text('Yes'.ii()),
+        ),
+      ],
+    ),
+  );
+  return result ?? false;
 }
 
 /*

@@ -289,12 +289,7 @@ class _LoginState extends State<LoginUI> {
       });
 
       final state = Provider.of<AppState>(context, listen: false);
-      var response = await API.login(_login, _passwordCtrl.text.trim());
-      if (!mounted) return;
-      if (response.statusCode != 200)
-        throw Exception("${API.httpErr} status = ${response.statusCode}");
-      debugPrint("resp=" + response.body.toString());
-      var res = jsonDecode(response.body.toString());
+      final res = await API.login(_login, _passwordCtrl.text.trim());
       state.clientId = res['clientId'];
       state.clientLogin = res['login'];
       if (state.clientId > 0) {
@@ -376,22 +371,14 @@ class _LoginState extends State<LoginUI> {
       params['idToken'] = idToken; // ID token
       debugPrint("params=" + params.toString());
 
-      var response = await API.loginWith(params);
-      if (!mounted) return;
-      if (response.statusCode != 200) {
-        throw Exception(
-            "${API.httpErr} status = ${response.statusCode}\n${response.body}");
-      }
-      debugPrint("resp=" + response.body.toString());
-      var res = jsonDecode(response.body.toString());
-
+      var res = await API.loginWithGoogle(params);
       final state = Provider.of<AppState>(context, listen: false);
       state.clientId = res['clientId'] ?? 0;
       state.clientLogin = res['login'] ?? email;
 
       if (state.clientId > 0) {
         // save new token
-        showSnackBar(context, 'Successfully logged in through Google');
+        showSnackBar(context, 'Successfully logged in with Google'.ii());
         API.sToken = res['stoken'] ?? '';
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString("token", API.sToken);
@@ -409,10 +396,10 @@ class _LoginState extends State<LoginUI> {
         // Улучшаем сообщения об ошибках для пользователя
         if (errorMessage.contains("network_error") ||
             errorMessage.contains("NetworkError")) {
-          errorMessage = "Ошибка сети. Проверьте подключение к интернету.";
+          errorMessage = "Network error. Check your internet connection.";
         } else if (errorMessage.contains("sign_in_canceled")) {
-          errorMessage = "Вход отменен";
-          return; // Не показываем ошибку, если пользователь просто отменил вход
+          errorMessage = "Login canceled";
+          return; // Don't show error if user simply canceled the login
         }
         showErrSnackBar(context, errorMessage);
       }

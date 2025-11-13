@@ -24,6 +24,8 @@ class API {
   static String sToken = "";
   static String fcmToken = "";
   static String lang = "";
+  static String dbPhotoUrl =
+      "https://mysterioussanta.afisha.news/photo.php?id=";
 
   static String calculateSHA512(String input) {
     var bytes = utf8.encode(input);
@@ -37,6 +39,12 @@ class API {
     headers['Content-Type'] = 'application/json; charset=utf-8';
     headers['Authorization'] = 'Bearer $sToken';
     return headers;
+  }
+
+  static checkResponse(http.Response response) {
+    if (response.statusCode != 200) {
+      throw Exception(httpErr + response.statusCode.toString());
+    }
   }
 
   static Future<String> getLang() async {
@@ -93,16 +101,29 @@ class API {
     }
   }
 
-  static Future auth() async {
-    var url = apiUrl + "auth.php";
-    debugPrint("URL= $url");
+  static Future queryBackend(String url, Map params) async {
+    final endpoint = apiUrl + url;
+    debugPrint("URL= $endpoint");
+    final response = await http.post(Uri.parse(endpoint),
+        body: json.encode(params), headers: getHeaders());
+    if (response.statusCode != 200) {
+      throw Exception(httpErr + response.statusCode.toString());
+    }
+    final result = jsonDecode(response.body);
+    if (result is Map) if (result.containsKey('err')) {
+      final err = result['err'];
+      if (err != null && err is String && err.isNotEmpty) {
+        throw Exception(err);
+      }
+    }
+    return result;
+  }
 
+  static Future auth() async {
     Map params = Map();
-    //params["sToken"] = await getToken();
     params["fcmToken"] = await getFbToken();
     params["lang"] = await getLang();
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("auth.php", params);
   }
 
   static Future login(String login, String password) async {
@@ -114,8 +135,7 @@ class API {
     params["sToken"] = await getToken();
     params["fcmToken"] = await getFbToken();
     params["lang"] = await getLang();
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("login.php", params);
   }
 
   static Future logout() async {
@@ -149,23 +169,27 @@ class API {
         body: json.encode(params), headers: getHeaders());
   }
 
+  static Future loginWithGoogle(Map params) async {
+    params["stoken"] = await getToken();
+    params["device"] = await getDeviceName();
+    params["fcmToken"] = await getFbToken();
+    params["lang"] = await getLang();
+    return queryBackend("login-with-google.php", params);
+  }
+
   static Future getRooms(int page, String q, String sortMode) async {
-    var url = apiUrl + "get-rooms.php";
-    if (q.length > 0) url += "&q=$q";
-    debugPrint("URL=$url");
     Map params = Map();
     params["page"] = page;
     params["sortMode"] = sortMode;
     if (q.length > 0) params["q"] = q;
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("get-rooms.php", params);
   }
 
-  static Future getRoom(int roomId) async {
-    var url = apiUrl + "get-room.php?roomId=$roomId";
+  static Future getRoom(String roomSecret) async {
+    var url = apiUrl + "get-room.php";
     debugPrint("URL=$url");
     Map params = Map();
-    params["roomId"] = roomId;
+    params["roomSecret"] = roomSecret;
     return http.post(Uri.parse(url),
         body: json.encode(params), headers: getHeaders());
   }
@@ -205,6 +229,15 @@ class API {
 
   static Future putRoom(Map room) async {
     var url = apiUrl + "put-room.php";
+    debugPrint("URL= $url");
+    return http.post(Uri.parse(url),
+        body: json.encode(room), headers: getHeaders());
+  }
+
+  static Future delRoom(int roomId) async {
+    var url = apiUrl + "del-room.php";
+    Map room = Map();
+    room['roomId'] = roomId;
     debugPrint("URL= $url");
     return http.post(Uri.parse(url),
         body: json.encode(room), headers: getHeaders());

@@ -19,10 +19,10 @@ import '../state.dart';
 import '../ii.dart';
 
 class RoomViewUI extends StatefulWidget {
-  final int roomId;
+  final String roomSecret;
   @override
   State<StatefulWidget> createState() => _RoomViewState();
-  RoomViewUI({super.key, required this.roomId});
+  RoomViewUI({super.key, required this.roomSecret });
 }
 
 class _RoomViewState extends State<RoomViewUI> {
@@ -37,6 +37,7 @@ class _RoomViewState extends State<RoomViewUI> {
   int clientsCount = 0;
   bool isParticipant = false;
   int recipient = 0;
+  String roomSecret = '';
   Map recipientInfo = {};
   final GlobalKey _qrKey = GlobalKey();
 
@@ -54,7 +55,7 @@ class _RoomViewState extends State<RoomViewUI> {
   void _load() async {
     try {
       FirebaseAnalytics.instance.logEvent(name: 'roomview');
-      final response = await API.getRoom(widget.roomId);
+    final response = await API.getRoom(widget.roomSecret);
       if (!mounted) return;
       if (response.statusCode != 200) {
         throw Exception(API.httpErr + response.statusCode.toString());
@@ -73,6 +74,7 @@ class _RoomViewState extends State<RoomViewUI> {
       clientsCount = res['clientsCount'];
       isParticipant = res['isParticipant'];
       recipient = res['recipient'];
+      roomSecret = res['secret'];
       if (recipient > 0) {
         final response = await API.getRcpProfile(recipient);
         if (!mounted) return;
@@ -107,7 +109,9 @@ class _RoomViewState extends State<RoomViewUI> {
                 visible: recipient == 0,
                 child: FloatingActionButton(
                   heroTag: 'doEnroll',
-                  onPressed: () => _doEnroll(context),
+                  onPressed: () {
+                    _doEnroll(context);
+                  },
                   elevation: 10,
                   //child: Icon(FontAwesomeIcons.cartPlus),
                   child: (isParticipant)
@@ -126,7 +130,7 @@ class _RoomViewState extends State<RoomViewUI> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => RoomUI(roomId: roomId)));
+                            builder: (context) => RoomUI(roomSecret: roomSecret)));
                   },
                   mini: true,
                   elevation: 10,
@@ -215,6 +219,13 @@ class _RoomViewState extends State<RoomViewUI> {
 
   void _doEnroll(BuildContext context) async {
     //
+    if (isParticipant) {
+      if (!await showYesNoDialog(
+          context, 'Are you sure you want to unenroll from this room?'.ii())) {
+        return;
+      }
+    }
+
     try {
       final state = Provider.of<AppState>(context, listen: false);
       if (state.clientId == 0) {
@@ -223,6 +234,7 @@ class _RoomViewState extends State<RoomViewUI> {
       }
       Map params = Map();
       params['roomId'] = roomId;
+      
       params['state'] = 'enroll';
       if (isParticipant) {
         params['state'] = 'unenroll';
@@ -451,7 +463,7 @@ class _RoomViewState extends State<RoomViewUI> {
   Future<void> _copyRoomLinkToClipboard() async {
     try {
       final roomLink =
-          'https://mysterioussanta.afisha.news/room/' + roomId.toString();
+          'https://mysterioussanta.afisha.news/room/' + roomSecret.toString();
       await Clipboard.setData(ClipboardData(text: roomLink));
 
       final params = ShareParams(uri: Uri.parse(roomLink), subject: title);
@@ -482,7 +494,7 @@ class _RoomViewState extends State<RoomViewUI> {
                 key: _qrKey,
                 child: QrImageView(
                   data: 'https://mysterioussanta.afisha.news/room/' +
-                      roomId.toString(),
+                      roomSecret.toString(),
                   version: QrVersions.auto,
                   backgroundColor:
                       Theme.of(context).brightness == Brightness.dark

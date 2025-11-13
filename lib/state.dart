@@ -144,15 +144,12 @@ class AppState with ChangeNotifier {
 
   Future<void> tryToAuth() async {
     try {
-      final authResponse = await API.auth();
-      if (authResponse.statusCode == 200) {
-        debugPrint("authResponse=" + authResponse.body.toString());
-        final res = jsonDecode(authResponse.body);
-        clientId = res['clientId'];
-        clientLogin = res['login'];
-      }
+      final res = await API.auth();
+      clientId = res['clientId'];
+      clientLogin = res['login'];
+      debugPrint("AUTH" + res.toString());
     } on Exception catch (e) {
-      // TODO
+      debugPrint('Error during authentication: $e');
     }
   }
 
@@ -381,18 +378,18 @@ class AppState with ChangeNotifier {
       //
       try {
         debugPrint("handleMessage params=$url");
-        int? id = int.tryParse(params[1]);
+        String? id = params[1].toString();
 
         // Используем Navigator вместо Get.to для правильной передачи темы
         if (Get.context != null) {
           Navigator.of(Get.context!).push(
             MaterialPageRoute(
-              builder: (context) => RoomViewUI(roomId: id ?? 0),
+              builder: (context) => RoomViewUI(roomSecret: id),
             ),
           );
         } else {
           // Fallback на Get.to если контекст недоступен
-          Get.to(() => RoomViewUI(roomId: id ?? 0), preventDuplicates: false);
+          Get.to(() => RoomViewUI(roomSecret: id), preventDuplicates: false);
         }
       } catch (e) {
         debugPrint('Error in handleMessage: $e');
@@ -461,15 +458,6 @@ class AppState with ChangeNotifier {
   }
 
   String processDeepLink(String link) {
-    // Поддерживаем старый формат /[sw]/(.+)
-    RegExp oldRegExp = RegExp(r'/[sw]/(.+)$');
-    Match? oldMatch = oldRegExp.firstMatch(link);
-    if (oldMatch != null) {
-      String extractedString = oldMatch.group(1)!;
-      return extractedString;
-    }
-
-    // Новый формат для комнат: /room/123
     RegExp roomRegExp = RegExp(r'/room/(\d+)');
     Match? roomMatch = roomRegExp.firstMatch(link);
     if (roomMatch != null) {
@@ -488,46 +476,26 @@ class AppState with ChangeNotifier {
   }
 
   void openAppLink(Uri uri) async {
-    final uriString = uri.toString();
-    final linkType = extractLinkType(uriString);
-    final extractedString = processDeepLink(uriString);
-
-    debugPrint('extractedString: $extractedString, linkType: $linkType');
-
-    if (extractedString.isEmpty) return;
-
+    final match = RegExp(r'/room/([^/]+)').firstMatch(uri.toString());
     try {
-      // Небольшая задержка для надежности на всех Android версиях
-      await Future.delayed(const Duration(milliseconds: 300));
+      if (match != null) {
+        final roomSecret = match.group(1)!;
+        debugPrint('Opening room via app link: $roomSecret');
 
-      if (linkType == 'room') {
-        // Room link: /room/123
-        final roomId = int.tryParse(extractedString);
-        if (roomId != null) {
-          debugPrint('Opening room via app link: $roomId');
-
-          // Используем Navigator вместо Get.to для правильной передачи темы
-          if (Get.context != null) {
-            Navigator.of(Get.context!).push(
-              MaterialPageRoute(
-                builder: (context) => RoomViewUI(roomId: roomId),
-              ),
-            );
-          } else {
-            // Fallback на Get.to если контекст недоступен
-            Get.to(() => RoomViewUI(roomId: roomId), preventDuplicates: false);
-          }
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (Get.context != null) {
+          Navigator.of(Get.context!).push(
+            MaterialPageRoute(
+              builder: (context) => RoomViewUI(roomSecret: roomSecret),
+            ),
+          );
         } else {
-          debugPrint('Invalid room ID: $extractedString');
+          // Fallback on Get.to if context is not available
+          Get.to(() => RoomViewUI(roomSecret: roomSecret),
+              preventDuplicates: false);
         }
-      } else if (linkType == 's') {
-        // Shared word: /s/shareUrl (оставляем для совместимости)
-        debugPrint('Shared link not implemented: $extractedString');
-      } else if (linkType == 'w') {
-        // Direct word ID: /w/wordId (оставляем для совместимости)
-        debugPrint('Word link not implemented: $extractedString');
       }
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('openAppLink error: ${e.toString()}');
     }
   }

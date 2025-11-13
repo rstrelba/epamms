@@ -100,16 +100,10 @@ class _HomeState extends State<HomeUI> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     sortMode = prefs.getString('sortMode') ?? "all";
     try {
-      final response = await API.getRooms(page, query, sortMode);
+      final res = await API.getRooms(page, query, sortMode);
       if (!mounted) return;
-      if (response.statusCode != 200)
-        throw Exception(API.httpErr + response.statusCode.toString());
-      if (page == 0) {
-        rooms.clear();
-        noMoreData = false;
-      }
-      debugPrint('response.body=${response.body}');
-      final res = jsonDecode(response.body);
+      debugPrint('response.body=${res.toString()}');
+      if (page == 0) rooms.clear();
       rooms.addAll(res);
       if (rooms.length < 100) noMoreData = true;
     } on Exception catch (e) {
@@ -257,7 +251,7 @@ class _HomeState extends State<HomeUI> {
     }
     var res = await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (BuildContext context) => RoomUI(roomId: 0),
+        builder: (BuildContext context) => RoomUI(roomSecret: ''),
       ),
     );
     setState(() {
@@ -345,8 +339,9 @@ class _HomeState extends State<HomeUI> {
     final room = rooms[index];
     final title = room['title'];
     final id = room['id'];
+    final roomSecret = room['secret'];
     final createTs = room['ts'];
-    final desc = room['desc'];
+    //final desc = room['desc'];
     final isOwner = room['isOwner'];
     final clientsCount = room['clientsCount'];
     final isParticipant = room['isParticipant'];
@@ -387,7 +382,8 @@ class _HomeState extends State<HomeUI> {
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (BuildContext context) => RoomViewUI(roomId: id),
+                  builder: (BuildContext context) =>
+                      RoomViewUI(roomSecret: roomSecret),
                 ),
               );
             },

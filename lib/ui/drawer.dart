@@ -10,6 +10,7 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../ii.dart';
 import '../state.dart';
 import 'login.dart';
@@ -170,7 +171,7 @@ class _DrawlerState extends State<DrawerUI>
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (_) => RoomViewUI(roomId: int.parse(idParam))));
+                      builder: (_) => RoomViewUI(roomSecret: idParam)));
             }
           },
         ),
@@ -192,6 +193,19 @@ class _DrawlerState extends State<DrawerUI>
           onTap: () {
             Navigator.push(
                 context, MaterialPageRoute(builder: (_) => AboutUI()));
+          },
+        ),
+        ListTile(
+          //leading: Icon(EvaIcons.logOut),
+          trailing: Image.asset("images/tg.png"),
+          subtitle: Text(
+            "Communication and support".ii(),
+            style: const TextStyle(fontSize: 10),
+          ),
+          title: Text('Telegram group'.ii()),
+          onTap: () async {
+            final Uri url = Uri.parse("https://t.me/mysterioussanta");
+            await launchUrl(url, mode: LaunchMode.externalApplication);
           },
         ),
 
@@ -234,10 +248,9 @@ class _DrawlerState extends State<DrawerUI>
         //Expanded(child: Container()),
         ListTile(
           title: Text(state.getVersion()),
-          onTap: () {
-            //
-          },
         ),
+        Center(child: Text('Developed for EPAM CAMPUS 2025')),
+        Center(child: Image.asset('images/epam.png', width: 200, height: 200)),
       ],
     ));
   }
