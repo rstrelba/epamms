@@ -212,38 +212,7 @@ class _DrawlerState extends State<DrawerUI>
         ListTile(
             title: Text('Delete account ...'.ii()),
             onTap: () async {
-              await showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: Text('Warning'.ii()),
-                    content: Text(
-                        'Are you sure you want to delete your account?'.ii()),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text('No'.ii()),
-                      ),
-                      TextButton(
-                        onPressed: () async {
-                          var response = await API.delClient();
-                          debugPrint(
-                              "Delete account: " + response.body.toString());
-                          //Navigator.pop(context);
-                          Navigator.pushReplacement(context,
-                              CupertinoPageRoute(builder: (_) => LoginUI()));
-                        },
-                        child: Text('Yes'.ii()),
-                      ),
-                    ],
-                  );
-                },
-              );
-              //return result;
-
-              //Navigator.pop(context);
+              _delAccount(context);
             }),
         //Expanded(child: Container()),
         ListTile(
@@ -255,11 +224,31 @@ class _DrawlerState extends State<DrawerUI>
     ));
   }
 
+  Future<void> _delAccount(BuildContext context) async {
+    final state = Provider.of<AppState>(context, listen: false);
+    try {
+      if (state.clientId == 0)
+        throw Exception('You are not logged in to delete account');
+      if (!await showYesNoDialog(
+          context, 'Are you sure you want to delete your account?'.ii())) {
+        return;
+      }
+      await API.delClient();
+      showSnackBar(context, 'Account deleted successfully');
+      await Future.delayed(const Duration(seconds: 3));
+      _logout(context);
+    } catch (e) {
+      showErrSnackBar(context, e.toString());
+    }
+  }
+
   Future<void> _logout(BuildContext context) async {
     showSnackBar(context, 'Logged out successfully');
     final state = Provider.of<AppState>(context, listen: false);
-    state.clientId = 0;
     await API.logout();
+    state.clientId = 0;
+    state.clientLogin = '';
+    API.sToken = '';
 
     Navigator.pop(context);
     Navigator.pushReplacement(

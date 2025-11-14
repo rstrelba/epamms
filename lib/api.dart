@@ -262,12 +262,7 @@ class API {
 
   /// @todo implement delClient
   static Future delClient() async {
-    Map params = Map();
-    var url = apiUrl + "put-vocab.php";
-    debugPrint("URL= $url");
-    params['stoken'] = await getToken();
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("del-client.php", {});
   }
 
   static Future getNPArea() async {
