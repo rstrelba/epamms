@@ -66,5 +66,13 @@
 	<array>
 		<string>applinks:ms.afisha.news</string>
 	</array>
+	
+	<!-- Camera and Photo Library Permissions -->
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs access to camera to take photos for your profile and wishes</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to photo library to select images for your profile and wishes</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app needs access to save photos to your photo library</string>
 </dict>
 </plist>

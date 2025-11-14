@@ -579,20 +579,48 @@ class _ProfileState extends State<ProfileUI> {
         if (!status.isGranted) {
           if (!mounted) return;
           if (status.isPermanentlyDenied) {
-            showErrSnackBar(context, 'Camera permission permanently denied.');
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text('Camera Permission Required'),
+                content: Text('Please enable camera permission in Settings to take selfies.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      openAppSettings();
+                    },
+                    child: Text('Open Settings'),
+                  ),
+                ],
+              ),
+            );
           } else {
-            showErrSnackBar(context, 'Camera permission denied');
+            showErrSnackBar(context, 'Camera permission denied. Please try again.');
           }
           return;
         }
       }
 
       if (!mounted) return;
+      
+      // Double-check permission before using camera
+      final currentStatus = await Permission.camera.status;
+      if (!currentStatus.isGranted) {
+        showErrSnackBar(context, 'Camera permission is required to take photos.');
+        return;
+      }
+      
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.camera,
         maxWidth: 300,
         maxHeight: 300,
         imageQuality: 95,
+        preferredCameraDevice: CameraDevice.front, // Селфи камера
       );
       if (image == null) return;
       if (!mounted) return;

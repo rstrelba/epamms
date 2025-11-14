@@ -133,21 +133,14 @@ class API {
   }
 
   static Future logout() async {
-    //await GoogleSignIn.instance.signOut();
-
-    var url = apiUrl + "logout.php";
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode([]), headers: getHeaders());
+    return queryBackend("logout.php", {});
   }
 
   static Future log(String log) async {
-    var url = apiUrl + "log.php";
-    debugPrint("URL= $url");
-    Map params = Map();
-    params["stoken"] = await getToken();
-    params["log"] = log + "|" + await getDeviceName() + "|" + appVersion;
-    return http.post(Uri.parse(url), body: params);
+    return queryBackend("log.php", {
+      "stoken": await getToken(),
+      "log": log + "|" + await getDeviceName() + "|" + appVersion
+    });
   }
 
   static Future loginWith(Map params) async {
@@ -196,11 +189,7 @@ class API {
   }
 
   static Future getWishlist() async {
-    var url = apiUrl + "get-wishlist.php";
-    debugPrint("URL=$url");
-    Map params = Map();
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("get-wishlist.php", {});
   }
 
   static Future putRoom(Map room) async {

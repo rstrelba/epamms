@@ -85,13 +85,13 @@ class TranslationService {
   factory TranslationService() => _instance;
   TranslationService._internal();
 
-  // Теперь храним только переводы для текущего языка
-  // Ключ - хэш английской фразы, значение - перевод
+  // now only translations for the current language are stored
+  // key - hash of English phrase, value - translation
   HashMap<String, String> _translations = HashMap<String, String>();
   String _currentLanguage = 'EN';
   bool _isInitialized = false;
 
-  // Список доступных языков берем из SupportedLanguages
+  // list of available languages is taken from SupportedLanguages
   List<String> get availableLanguages => SupportedLanguages.codes;
 
   static TranslationService get instance => _instance;
@@ -119,11 +119,11 @@ class TranslationService {
     try {
       final csvContent = await rootBundle.loadString('assets/intl.csv');
 
-      // Парсим CSV только для переводов
+      // parse CSV only for translations
       _parseCSV(csvContent);
     } catch (e) {
       debugPrint('Error loading translations from assets: $e');
-      // Попробуем альтернативный путь для совместимости
+      // try alternative path for compatibility
       try {
         final csvContent = await rootBundle.loadString('intl.csv');
         _parseCSV(csvContent);
@@ -140,10 +140,10 @@ class TranslationService {
       return;
     }
 
-    // Парсим заголовок
+    // parse header
     final header = _parseCSVLine(lines[0]);
 
-    // Для английского языка переводы не нужны
+    // for English language translations are not needed
     if (_currentLanguage == 'EN') {
       return;
     }
@@ -155,7 +155,7 @@ class TranslationService {
       return;
     }
 
-    // Определяем индекс нужного языка
+    // determine index of the desired language
     int languageIndex = -1;
     for (int i = 0; i < header.length; i++) {
       if (header[i] == _currentLanguage) {
@@ -169,11 +169,11 @@ class TranslationService {
       return;
     }
 
-    // Очищаем переводы
+    // clean up translations first
     _translations.clear();
     int parsedCount = 0;
 
-    // Парсим строки данных
+    // parse data lines
     for (int i = 1; i < lines.length; i++) {
       if (lines[i].trim().isEmpty) {
         continue;
@@ -229,16 +229,14 @@ class TranslationService {
 
   // Генерируем оптимальный ключ для английской фразы
   String _generateKey(String text) {
-    // Для коротких строк используем сам текст как ключ
-    // SHA256 хэш всегда 64 символа, поэтому если текст короче - используем его
+    // for short strings use the text itself as a key
     if (text.length <= 32) {
-      // Добавляем префикс чтобы избежать коллизий с длинными текстами
       return 'short:$text';
     }
 
-    // Для длинных строк используем хэш
+    // for long strings use hash
     final bytes = utf8.encode(text);
-    final digest = sha256.convert(bytes);
+    final digest = sha1.convert(bytes);
     return 'hash:${digest.toString()}';
   }
 
@@ -251,7 +249,7 @@ class TranslationService {
       return text; // Return original for English
     }
 
-    // Генерируем хэш для поиска перевода
+    // generate hash for translation search
     final hash = _generateKey(text);
     final translation = _translations[hash];
 
@@ -263,14 +261,14 @@ class TranslationService {
   }
 
   Future<void> setLanguage(String language) async {
-    if (_currentLanguage == language) return; // Язык не изменился
+    if (_currentLanguage == language) return; // language has not changed
 
     _currentLanguage = language;
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('app_language', language);
 
-      // Перезагружаем переводы для нового языка
+      // reload translations for the new language
       await _loadTranslations();
     } catch (e) {
       debugPrint('Error saving language: $e');
@@ -279,11 +277,11 @@ class TranslationService {
 
   String get currentLanguage => _currentLanguage;
 
-  // Метод для получения статистики
+  // method for getting statistics
   int get translationsCount => _translations.length;
 }
 
-// Extension для интернационализации строк
+// extension for internationalization of strings
 extension StringInternationalization on String {
   String ii() {
     return TranslationService.instance.translate(this);

@@ -9,6 +9,7 @@ import 'package:epamms/ui/snack_bar.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:simple_barcode_scanner/simple_barcode_scanner.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../ii.dart';
@@ -245,13 +246,17 @@ class _DrawlerState extends State<DrawerUI>
   Future<void> _logout(BuildContext context) async {
     showSnackBar(context, 'Logged out successfully');
     final state = Provider.of<AppState>(context, listen: false);
-    await API.logout();
-    state.clientId = 0;
-    state.clientLogin = '';
-    API.sToken = '';
-
-    Navigator.pop(context);
-    Navigator.pushReplacement(
-        context, CupertinoPageRoute(builder: (_) => HomeUI()));
+    try {
+      await API.logout();
+      state.clientId = 0;
+      state.clientLogin = '';
+      API.sToken = '';
+      GoogleSignIn.instance.signOut();
+      Navigator.pop(context);
+      Navigator.pushReplacement(
+          context, CupertinoPageRoute(builder: (_) => HomeUI()));
+    } catch (e) {
+      showErrSnackBar(context, e.toString());
+    }
   }
 }
