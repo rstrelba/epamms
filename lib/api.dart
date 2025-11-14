@@ -17,7 +17,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class API {
   static var unescape = HtmlUnescape();
   static const String apiUrl = "https://mysterioussanta.afisha.news/";
-  static String httpErr = "Internet request failed with status ";
 
   static var info = "info";
   static String appVersion = "";
@@ -39,12 +38,6 @@ class API {
     headers['Content-Type'] = 'application/json; charset=utf-8';
     headers['Authorization'] = 'Bearer $sToken';
     return headers;
-  }
-
-  static checkResponse(http.Response response) {
-    if (response.statusCode != 200) {
-      throw Exception(httpErr + response.statusCode.toString());
-    }
   }
 
   static Future<String> getLang() async {
@@ -107,7 +100,8 @@ class API {
     final response = await http.post(Uri.parse(endpoint),
         body: json.encode(params), headers: getHeaders());
     if (response.statusCode != 200) {
-      throw Exception(httpErr + response.statusCode.toString());
+      throw Exception("Internet request failed with status: " +
+          response.statusCode.toString());
     }
     final result = jsonDecode(response.body);
     if (result is Map) if (result.containsKey('err')) {
@@ -186,37 +180,19 @@ class API {
   }
 
   static Future getRoom(String roomSecret) async {
-    var url = apiUrl + "get-room.php";
-    debugPrint("URL=$url");
-    Map params = Map();
-    params["roomSecret"] = roomSecret;
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("get-room.php", {"roomSecret": roomSecret});
   }
 
   static Future getProfile(int id) async {
-    var url = apiUrl + "get-profile.php";
-    debugPrint("URL=$url");
-    Map params = Map();
-    params["id"] = id;
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("get-profile.php", {"id": id});
   }
 
   static Future getSex() async {
-    var url = apiUrl + "get-sex.php";
-    debugPrint("URL=$url");
-    Map params = Map();
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("get-sex.php", {});
   }
 
   static Future getDelService() async {
-    var url = apiUrl + "get-del-service.php";
-    debugPrint("URL=$url");
-    Map params = Map();
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("get-del-service.php", {});
   }
 
   static Future getWishlist() async {
@@ -228,117 +204,60 @@ class API {
   }
 
   static Future putRoom(Map room) async {
-    var url = apiUrl + "put-room.php";
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode(room), headers: getHeaders());
+    return queryBackend("put-room.php", room);
   }
 
   static Future delRoom(int roomId) async {
-    var url = apiUrl + "del-room.php";
-    Map room = Map();
-    room['roomId'] = roomId;
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode(room), headers: getHeaders());
+    return queryBackend("del-room.php", {"roomId": roomId});
   }
 
   static Future putPhoto(Map photo) async {
-    var url = apiUrl + "put-photo.php";
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode(photo), headers: getHeaders());
+    return queryBackend("put-photo.php", photo);
   }
 
   static Future delPhoto() async {
-    Map params = Map();
-    var url = apiUrl + "del-photo.php";
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("del-photo.php", {});
   }
 
   static Future delWishlist(int id) async {
-    Map params = Map();
-    params["id"] = id;
-    var url = apiUrl + "del-wishlist.php";
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("del-wishlist.php", {"id": id});
   }
 
   static Future getWish(int id) async {
-    Map params = Map();
-    params["id"] = id;
-    var url = apiUrl + "get-wish.php";
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("get-wish.php", {"id": id});
   }
 
   static Future getRcpProfile(int id) async {
-    Map params = Map();
-    params["id"] = id;
-    var url = apiUrl + "get-rcp-profile.php";
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("get-rcp-profile.php", {"id": id});
   }
 
   static Future getWishListAI(Map params) async {
-    var url = apiUrl + "get-wish-with-ai.php";
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("get-wish-with-ai.php", params);
   }
 
   static Future getLanguages() async {
-    var url = apiUrl + "lang.json";
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode([]), headers: getHeaders());
+    return queryBackend("lang.json", {});
   }
 
   static Future delWish(int id) async {
-    Map params = Map();
-    params["id"] = id;
-    var url = apiUrl + "del-wish.php";
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("del-wish.php", {"id": id});
   }
 
   static Future doRandomize(int id) async {
-    Map params = Map();
-    params["roomId"] = id;
-    var url = apiUrl + "do-randomize.php";
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("do-randomize.php", {"roomId": id});
   }
 
   static Future delFromRoom(int roomId, int userId) async {
-    Map params = Map();
-    params["roomId"] = roomId;
-    params["userId"] = userId;
-    var url = apiUrl + "del-from-room.php";
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend(
+        "del-from-room.php", {"roomId": roomId, "userId": userId});
   }
 
   static Future putWish(Map wish) async {
-    var url = apiUrl + "put-wish.php";
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode(wish), headers: getHeaders());
+    return queryBackend("put-wish.php", wish);
   }
 
   static Future doEnroll(Map params) async {
-    var url = apiUrl + "do-enroll.php";
-    debugPrint("URL= $url");
-    return http.post(Uri.parse(url),
-        body: json.encode(params), headers: getHeaders());
+    return queryBackend("do-enroll.php", params);
   }
 
   /// @todo implement delClient
@@ -352,27 +271,19 @@ class API {
   }
 
   static Future getNPArea() async {
-    var url = apiUrl + "get-np-area.php";
-    debugPrint("URL=$url");
-    return http.get(Uri.parse(url));
+    return queryBackend("get-np-area.php", {});
   }
 
   static Future getNPCity(String? area) async {
-    var url = apiUrl + "get-np-city.php?area=$area";
-    debugPrint("URL=$url");
-    return http.get(Uri.parse(url));
+    return queryBackend("get-np-city.php", {"area": area});
   }
 
   static Future getNPWh(String? city) async {
-    var url = apiUrl + "get-np-wh.php?city=$city";
-    debugPrint("URL=$url");
-    return http.get(Uri.parse(url));
+    return queryBackend("get-np-wh.php", {"city": city});
   }
 
   static Future getNPbyRef(String ref) async {
-    var url = apiUrl + "get-np-by-ref.php?npWh=$ref";
-    debugPrint("URL=$url");
-    return http.get(Uri.parse(url));
+    return queryBackend("get-np-by-ref.php", {"npWh": ref});
   }
 
   static Future<String> getDeviceName() async {
@@ -403,9 +314,6 @@ class API {
   }
 
   static Future putProfile(Map profile) async {
-    var url = apiUrl + "put-profile.php";
-    debugPrint("URL=$url");
-    return http.post(Uri.parse(url),
-        body: json.encode(profile), headers: getHeaders());
+    return queryBackend("put-profile.php", profile);
   }
 }

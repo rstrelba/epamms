@@ -462,8 +462,7 @@ class _LoginState extends State<LoginUI> {
         params['provider'] = "apple";
 
         var response = await API.loginWith(params);
-        if (response.statusCode != 200)
-          throw Exception(API.httpErr + response.statusCode.toString());
+        //if (response.statusCode != 200)          throw Exception(API.httpErr + response.statusCode.toString());
         debugPrint("resp=" + response.body.toString());
         var res = jsonDecode(response.body.toString());
 

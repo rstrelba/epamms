@@ -34,11 +34,7 @@ class _WishEditState extends State<WishEditUI> {
     });
     try {
       FirebaseAnalytics.instance.logEvent(name: 'wishlist');
-      final response = await API.getWish(widget.wishId);
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
-      wish = jsonDecode(response.body);
+      wish = await API.getWish(widget.wishId);
     } on Exception catch (e) {
       showErrSnackBar(context, e.toString());
     } finally {
@@ -85,13 +81,8 @@ class _WishEditState extends State<WishEditUI> {
 
   void _save(BuildContext context) async {
     try {
-      final response = await API.putWish(wish);
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
-      final res = jsonDecode(response.body);
+      final res = await API.putWish(wish);
       wish['id'] = res['id'];
-
       showSnackBar(context, "Wish saved");
       Navigator.pop(context, wish);
     } on Exception catch (e) {
@@ -185,10 +176,7 @@ class _WishEditState extends State<WishEditUI> {
 
   void _delete(BuildContext context) async {
     try {
-      final response = await API.delWish(wish['id']);
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
+      await API.delWish(wish['id']);
       showSnackBar(context, "Wish deleted");
       Navigator.pop(context, null);
     } on Exception catch (e) {
@@ -205,18 +193,12 @@ class _WishEditState extends State<WishEditUI> {
       final was = previousWishesAI.join(',');
       Map params = Map();
       params['was'] = was;
-      final response = await API.getWishListAI(params);
-      debugPrint(response.body);
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
-      final res = jsonDecode(response.body);
-      // Проверяем, что res - это массив, иначе выбрасываем ошибку
+      wishlistAI.clear();
+      final res = await API.getWishListAI(params);
       if (res is! List) {
         throw Exception('AI: Unexpected backend response');
       }
-
-      wishlistAI = jsonDecode(response.body);
+      wishlistAI.addAll(res);
       debugPrint(wishlistAI.toString());
       wishlistAI.forEach((wish) {
         if (!previousWishesAI.contains(wish['name'])) {

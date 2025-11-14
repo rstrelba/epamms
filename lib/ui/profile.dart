@@ -29,7 +29,6 @@ class _ProfileState extends State<ProfileUI> {
   List sex = [];
   List languages = [];
   List delService = [];
-  File? _selfieImageFile;
   final ImagePicker _imagePicker = ImagePicker();
 
   // Nova Poshta data
@@ -43,6 +42,7 @@ class _ProfileState extends State<ProfileUI> {
   bool isLoadingNP = false;
   List wishlist = [];
   bool isReadOnly = false;
+  bool wasEdited = false;
 
   @override
   void initState() {
@@ -59,38 +59,13 @@ class _ProfileState extends State<ProfileUI> {
     isReadOnly = widget.isReadOnly;
     try {
       FirebaseAnalytics.instance.logEvent(name: 'profile');
-      final responseLangs = await API.getLanguages();
-      if (responseLangs.statusCode != 200) {
-        throw Exception(API.httpErr + responseLangs.statusCode.toString());
-      }
-      languages = jsonDecode(responseLangs.body);
-
-      final responseSex = await API.getSex();
-      if (responseSex.statusCode != 200) {
-        throw Exception(API.httpErr + responseSex.statusCode.toString());
-      }
-      sex = jsonDecode(responseSex.body);
-
-      final responseDelService = await API.getDelService();
-      if (responseDelService.statusCode != 200) {
-        throw Exception(API.httpErr + responseDelService.statusCode.toString());
-      }
-      delService = jsonDecode(responseDelService.body);
-
-      final responseAreas = await API.getNPArea();
-      if (responseAreas.statusCode != 200) {
-        throw Exception(API.httpErr + responseDelService.statusCode.toString());
-      }
-      npAreaList.addAll(jsonDecode(responseAreas.body));
-
-      final response = await API.getProfile(widget.id);
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
+      languages.addAll(await API.getLanguages());
+      sex.addAll(await API.getSex());
+      delService.addAll(await API.getDelService());
+      npAreaList.addAll(await API.getNPArea());
+      debugPrint(npAreaList.toString());
+      profile = await API.getProfile(widget.id);
       if (!mounted) return;
-
-      debugPrint(response.body);
-      profile = jsonDecode(response.body);
       if (profile['wishlist'] != null && profile['wishlist'].isNotEmpty) {
         wishlist.addAll(profile['wishlist'] as List);
       }
@@ -113,22 +88,34 @@ class _ProfileState extends State<ProfileUI> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Profile".ii()),
-      ),
-      floatingActionButton: Visibility(
-        visible: !isReadOnly,
-        child: FloatingActionButton(
-          onPressed: () {
-            _save(context);
-          },
-          child: Icon(Icons.check),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        debugPrint(
+            'onPopInvokedWithResult: didPop: $didPop, wasEdited: $wasEdited');
+        if (didPop) return;
+        final bool shouldPop = await _handleBackPress(context);
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("Profile".ii()),
         ),
-      ),
-      body: Container(
-        padding: EdgeInsets.all(5.0),
-        child: _buildProfile(context),
+        floatingActionButton: Visibility(
+          visible: !isReadOnly,
+          child: FloatingActionButton(
+            onPressed: () {
+              _save(context);
+            },
+            child: Icon(Icons.check),
+          ),
+        ),
+        body: Container(
+          padding: EdgeInsets.all(5.0),
+          child: _buildProfile(context),
+        ),
       ),
     );
   }
@@ -145,6 +132,7 @@ class _ProfileState extends State<ProfileUI> {
             child: TextFormField(
                 //autofocus: true,
                 onChanged: (value) {
+                  wasEdited = true;
                   profile['name1'] = value;
                 },
                 initialValue: profile['name1'],
@@ -159,6 +147,7 @@ class _ProfileState extends State<ProfileUI> {
             absorbing: isReadOnly,
             child: TextFormField(
                 onChanged: (value) {
+                  wasEdited = true;
                   profile['name2'] = value;
                 },
                 initialValue: profile['name2'],
@@ -176,6 +165,7 @@ class _ProfileState extends State<ProfileUI> {
               maxLength: 9,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onChanged: (value) {
+                wasEdited = true;
                 profile['phone'] = value;
               },
               initialValue: profile['phone'],
@@ -206,6 +196,7 @@ class _ProfileState extends State<ProfileUI> {
                   ? profile['sex']
                   : null,
               onChanged: (value) {
+                wasEdited = true;
                 profile['sex'] = value;
               },
             ),
@@ -226,6 +217,7 @@ class _ProfileState extends State<ProfileUI> {
                   ? profile['lang']?.toString()
                   : null,
               onChanged: (value) {
+                wasEdited = true;
                 if (value != null) {
                   profile['lang'] = value;
                 }
@@ -246,6 +238,7 @@ class _ProfileState extends State<ProfileUI> {
               maxLength: 4,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onChanged: (value) {
+                wasEdited = true;
                 profile['year'] = value;
               },
               initialValue: profile['year'].toString(),
@@ -262,6 +255,7 @@ class _ProfileState extends State<ProfileUI> {
             absorbing: isReadOnly,
             child: TextFormField(
               onChanged: (value) {
+                wasEdited = true;
                 profile['hobby'] = value;
               },
               initialValue: profile['hobby'],
@@ -287,9 +281,11 @@ class _ProfileState extends State<ProfileUI> {
                   : null,
               onChanged: (value) async {
                 try {
+                  wasEdited = true;
                   setState(() {
                     isLoadingNP = true;
                   });
+                  debugPrint('delService: ${value}');
                   profile['delService'] = value;
                   if (profile['delService'] == 2 &&
                       profile['npWh'] != null &&
@@ -349,6 +345,7 @@ class _ProfileState extends State<ProfileUI> {
           TextFormField(
               //autofocus: true,
               onChanged: (value) {
+                wasEdited = true;
                 profile['postIndex'] = value;
               },
               initialValue: profile['postIndex'],
@@ -361,6 +358,7 @@ class _ProfileState extends State<ProfileUI> {
           TextFormField(
               //autofocus: true,
               onChanged: (value) {
+                wasEdited = true;
                 profile['address'] = value;
               },
               initialValue: profile['address'],
@@ -391,11 +389,12 @@ class _ProfileState extends State<ProfileUI> {
                   child: Text(item['name'], overflow: TextOverflow.ellipsis),
                   value: item['id']))
               .toList(),
-          initialValue: npArea,
+          value: npAreaList.any((item) => item['id'] == npArea) ? npArea : null,
           onChanged: (value) async {
-            if (npArea!.isNotEmpty) {
+            if (npArea != null && npArea!.isNotEmpty) {
               await _loadNPCity(value as String?);
             }
+            wasEdited = true;
             setState(() {
               npArea = value as String?;
               profile['npArea'] = npArea;
@@ -410,11 +409,12 @@ class _ProfileState extends State<ProfileUI> {
                   child: Text(item['name'], overflow: TextOverflow.ellipsis),
                   value: item['id']))
               .toList(),
-          initialValue: npCity,
+          value: npCityList.any((item) => item['id'] == npCity) ? npCity : null,
           onChanged: (value) async {
             await _loadNPWh(value as String?);
+            wasEdited = true;
             setState(() {
-              npCity = value as String;
+              npCity = value;
             });
           },
         ),
@@ -427,8 +427,9 @@ class _ProfileState extends State<ProfileUI> {
                     child: Text(item['name'], overflow: TextOverflow.ellipsis),
                     value: item['id']))
                 .toList(),
-            initialValue: npWh,
+            value: npWhList.any((item) => item['id'] == npWh) ? npWh : null,
             onChanged: (value) {
+              wasEdited = true;
               setState(() {
                 npWh = value as String?;
                 profile['npWh'] = npWh;
@@ -441,17 +442,15 @@ class _ProfileState extends State<ProfileUI> {
   }
 
   Future<void> _loadNPCity(String? npArea) async {
+    debugPrint('_loadNPCity: ${npArea}');
     try {
-      final response = await API.getNPCity(npArea);
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
+      final res = await API.getNPCity(npArea);
       if (!mounted) return;
       npWhList.clear();
       npCityList.clear();
       npCity = null;
       npWh = null;
-      npCityList.addAll(jsonDecode(response.body));
+      npCityList.addAll(res);
     } on Exception catch (e) {
       if (mounted) {
         showErrSnackBar(context, e.toString());
@@ -460,15 +459,13 @@ class _ProfileState extends State<ProfileUI> {
   }
 
   Future<void> _loadNPWh(String? npCity) async {
+    debugPrint('_loadNPWh: ${npCity}');
     try {
-      final response = await API.getNPWh(npCity);
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
+      final res = await API.getNPWh(npCity);
       if (!mounted) return;
       npWhList.clear();
       npWh = null;
-      npWhList.addAll(jsonDecode(response.body));
+      npWhList.addAll(res);
     } on Exception catch (e) {
       if (mounted) {
         showErrSnackBar(context, e.toString());
@@ -476,13 +473,9 @@ class _ProfileState extends State<ProfileUI> {
     }
   }
 
-  void _save(BuildContext context) async {
+  Future<void> _save(BuildContext context) async {
     try {
-      debugPrint(profile.toString());
-      final response = await API.putProfile(profile);
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
+      await API.putProfile(profile);
       if (!mounted) return;
       showSnackBar(context, 'Profile saved');
       Navigator.pushReplacement(
@@ -498,12 +491,11 @@ class _ProfileState extends State<ProfileUI> {
 
   Future<void> _loadNPData() async {
     try {
-      final responseNPWh = await API.getNPbyRef(profile['npWh']);
-      if (responseNPWh.statusCode != 200) {
-        throw Exception(API.httpErr + responseNPWh.statusCode.toString());
-      }
+      debugPrint('_loadNPData: ${profile['npWh']}');
+      if (profile['npWh'] == null || profile['npWh'].toString().isEmpty) return;
+      final npAddress = await API.getNPbyRef(profile['npWh']);
+      debugPrint(npAddress.toString());
       if (!mounted) return;
-      final npAddress = jsonDecode(responseNPWh.body);
       profile['npArea'] = npAddress['area_ref'];
       profile['npCity'] = npAddress['city_ref'];
       npArea = profile['npArea'].toString();
@@ -546,15 +538,10 @@ class _ProfileState extends State<ProfileUI> {
                           child: Text('Cancel'.ii())),
                       TextButton(
                           onPressed: () async {
-                            final photoResponse = await API.delPhoto();
-                            if (photoResponse.statusCode != 200) {
-                              throw Exception(API.httpErr +
-                                  photoResponse.statusCode.toString());
-                            }
+                            await API.delPhoto();
                             if (!mounted) return;
                             showSnackBar(context, 'Photo deleted successfully');
                             setState(() {
-                              _selfieImageFile = null;
                               profile['photo'] = false;
                               profile['selfiePath'] = null;
                             });
@@ -618,14 +605,11 @@ class _ProfileState extends State<ProfileUI> {
 
       // Save photo to backend
       try {
-        final photoResponse = await API.putPhoto({
+        wasEdited = true;
+        await API.putPhoto({
           'photo': base64Image,
         });
         profile['photo'] = API.dbPhotoUrl + profile['id'].toString();
-
-        if (photoResponse.statusCode != 200) {
-          throw Exception(API.httpErr + photoResponse.statusCode.toString());
-        }
 
         if (!mounted) return;
         showSnackBar(context, 'Photo saved successfully');
@@ -638,9 +622,7 @@ class _ProfileState extends State<ProfileUI> {
 
       if (!mounted) return;
       setState(() {
-        _selfieImageFile = imageFile;
         profile['photo'] = true;
-        profile['selfiePath'] = image.path;
       });
     } catch (e) {
       if (mounted) {
@@ -659,6 +641,7 @@ class _ProfileState extends State<ProfileUI> {
           key: Key('wishlist_${itemMap['id']}'),
           onDismissed: (direction) {
             //_delWishlist(itemMap['id']);
+            wasEdited = true;
             setState(() {
               wishlist.remove(itemMap);
             });
@@ -678,12 +661,7 @@ class _ProfileState extends State<ProfileUI> {
                             child: Text('Cancel'.ii())),
                         TextButton(
                             onPressed: () async {
-                              final wishlistResponse =
-                                  await API.delWishlist(itemMap['id']);
-                              if (wishlistResponse.statusCode != 200) {
-                                throw Exception(API.httpErr +
-                                    wishlistResponse.statusCode.toString());
-                              }
+                              await API.delWishlist(itemMap['id']);
                               if (!mounted) return;
                               showSnackBar(
                                   context, 'Wishlist deleted successfully');
@@ -709,6 +687,7 @@ class _ProfileState extends State<ProfileUI> {
                               WishEditUI(wishId: itemMap['id'])),
                     );
                     setState(() {
+                      wasEdited = true;
                       wishlist.remove(itemMap);
                       if (wish != null) wishlist.add(wish);
                     });
@@ -800,5 +779,18 @@ class _ProfileState extends State<ProfileUI> {
             )
           ]),
     );
+  }
+
+  Future<bool> _handleBackPress(BuildContext context) async {
+    debugPrint('_handleBackPress: wasEdited: ${wasEdited}');
+    if (!wasEdited) {
+      return true;
+    }
+    final bool shouldSave = await showYesNoDialog(
+        context, 'You have unsaved changes. Do you want to save them?');
+    if (shouldSave) {
+      await _save(context);
+    }
+    return true;
   }
 }

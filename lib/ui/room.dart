@@ -53,14 +53,9 @@ class _RoomState extends State<RoomUI> {
   void _load() async {
     try {
       FirebaseAnalytics.instance.logEvent(name: 'roomedit');
-      final response = await API.getRoom(widget.roomSecret);
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
+      final res = await API.getRoom(widget.roomSecret);
       if (!mounted) return;
-
-      debugPrint(response.body);
-      final res = jsonDecode(response.body);
+      debugPrint(res.toString());
       recipients = res['recipients'];
       roomId = res['roomId'];
       roomSecret = res['secret'];
@@ -301,13 +296,7 @@ class _RoomState extends State<RoomUI> {
     debugPrint("PUT ROOM=" + room.toString());
     try {
       //@todo implement putDict
-      final response = await API.putRoom(room);
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
-      debugPrint(response.body);
-      final res = jsonDecode(response.body);
-      debugPrint("PUT ROOM=" + res.toString());
+      await API.putRoom(room);
       if (!mounted) return;
       showSnackBar(context, "Room saved successfully!".ii());
       Navigator.pop(context, true);
@@ -327,13 +316,7 @@ class _RoomState extends State<RoomUI> {
       return;
     }
     try {
-      final response = await API.delRoom(roomId);
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
-      debugPrint(response.body);
-      final res = jsonDecode(response.body);
-      debugPrint("DEL ROOM=" + res.toString());
+      await API.delRoom(roomId);
       showSnackBar(context, "Room removed successfully!".ii());
       Navigator.pushReplacement(
           context, CupertinoPageRoute(builder: (_) => HomeUI()));
@@ -422,28 +405,16 @@ class _RoomState extends State<RoomUI> {
             "You need at least 2 participants to randomize the room!".ii());
         return;
       }
-      final response = await API.doRandomize(roomId);
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
-      debugPrint(response.body);
-      final res = jsonDecode(response.body);
-      debugPrint("DO RANDOMIZE=" + res.toString());
+      await API.doRandomize(roomId);
       showSnackBar(context, "Room randomized successfully!".ii());
     } catch (e) {
       showErrSnackBar(context, e.toString());
     }
   }
 
-  void _doDelFromRoom(BuildContext context, recipient) async {
+  void _doDelFromRoom(BuildContext context, rcpId) async {
     try {
-      final response = await API.delFromRoom(roomId, recipient);
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
-      debugPrint(response.body);
-      final res = jsonDecode(response.body);
-      debugPrint("DEL FROM ROOM=" + res.toString());
+      await API.delFromRoom(roomId, int.parse(rcpId));
       showSnackBar(context, "Recipient deleted successfully!".ii());
     } catch (e) {
       showErrSnackBar(context, e.toString());

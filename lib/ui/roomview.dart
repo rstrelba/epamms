@@ -55,13 +55,8 @@ class _RoomViewState extends State<RoomViewUI> {
   void _load() async {
     try {
       FirebaseAnalytics.instance.logEvent(name: 'roomview');
-    final response = await API.getRoom(widget.roomSecret);
+    final res = await API.getRoom(widget.roomSecret);
       if (!mounted) return;
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
-      debugPrint("response.body=" + response.body);
-      final res = jsonDecode(response.body);
       roomId = res['roomId'];
       title = res['title'];
       description = res['desc'];
@@ -76,12 +71,8 @@ class _RoomViewState extends State<RoomViewUI> {
       recipient = res['recipient'];
       roomSecret = res['secret'];
       if (recipient > 0) {
-        final response = await API.getRcpProfile(recipient);
+        recipientInfo = await API.getRcpProfile(recipient);
         if (!mounted) return;
-        if (response.statusCode != 200) {
-          throw Exception(API.httpErr + response.statusCode.toString());
-        }
-        recipientInfo = jsonDecode(response.body);
         debugPrint(recipientInfo.toString());
       }
     } on Exception catch (e) {
@@ -234,18 +225,12 @@ class _RoomViewState extends State<RoomViewUI> {
       }
       Map params = Map();
       params['roomId'] = roomId;
-      
       params['state'] = 'enroll';
       if (isParticipant) {
         params['state'] = 'unenroll';
       }
-      final response = await API.doEnroll(params);
+      final res=await API.doEnroll(params);
       if (!mounted) return;
-      if (response.statusCode != 200) {
-        throw Exception(API.httpErr + response.statusCode.toString());
-      }
-      debugPrint("response.body=" + response.body);
-      final res = jsonDecode(response.body);
       if (res['result'] == 'ok') {
         setState(() {
           isParticipant = !isParticipant;
