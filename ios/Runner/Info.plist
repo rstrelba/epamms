@@ -54,7 +54,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>ms.afisha.news</string>
+			<string>mysterioussanta.afisha.news</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>https</string>
@@ -64,7 +64,7 @@
 	<!-- Associated Domains for App Links -->
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:ms.afisha.news</string>
+		<string>applinks:mysterioussanta.afisha.news</string>
 	</array>
 	
 	<!-- Camera and Photo Library Permissions -->

@@ -597,36 +597,59 @@ class _ProfileState extends State<ProfileUI> {
     try {
       if (!mounted) return;
 
+      // Получаем текущий статус разрешения
       var status = await Permission.camera.status;
+
+      // Логируем для отладки
+      print('📸 Camera permission status: $status');
+      print('📸 isGranted: ${status.isGranted}');
+      print('📸 isDenied: ${status.isDenied}');
+      print('📸 isPermanentlyDenied: ${status.isPermanentlyDenied}');
+      print('📸 isRestricted: ${status.isRestricted}');
+      print('📸 isLimited: ${status.isLimited}');
+
+      // Если разрешение не предоставлено, запрашиваем его
       if (!status.isGranted) {
-        status = await Permission.camera.request();
+        // На iOS можем запросить разрешение если:
+        // 1. Статус "denied" но не "permanentlyDenied"
+        // 2. Статус "notDetermined" (первый запуск)
+        if (status.isDenied && !status.isPermanentlyDenied) {
+          print('📸 Requesting camera permission...');
+          status = await Permission.camera.request();
+          print('📸 Permission request result: $status');
+        }
+
+        // Проверяем результат
         if (!status.isGranted) {
           if (!mounted) return;
-          if (status.isPermanentlyDenied) {
+
+          if (status.isPermanentlyDenied || status.isRestricted) {
+            // Пользователь навсегда запретил или система ограничила доступ
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
-                title: Text('Camera Permission Required'),
+                title: Text('Требуется разрешение камеры'),
                 content: Text(
-                    'Please enable camera permission in Settings to take selfies.'),
+                    'Пожалуйста, включите разрешение камеры в Настройках для создания селфи.'),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text('Cancel'),
+                    child: Text('Отмена'),
                   ),
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();
                       openAppSettings();
                     },
-                    child: Text('Open Settings'),
+                    child: Text('Открыть настройки'),
                   ),
                 ],
               ),
             );
           } else {
+            // Пользователь просто отказался в этот раз
             showErrSnackBar(
-                context, 'Camera permission denied. Please try again.');
+                context, 'Разрешение камеры отклонено. Попробуйте еще раз.');
           }
           return;
         }
@@ -634,11 +657,13 @@ class _ProfileState extends State<ProfileUI> {
 
       if (!mounted) return;
 
-      // Double-check permission before using camera
-      final currentStatus = await Permission.camera.status;
-      if (!currentStatus.isGranted) {
+      // Финальная проверка перед использованием камеры
+      final finalStatus = await Permission.camera.status;
+      print('📸 Final camera permission check: $finalStatus');
+
+      if (!finalStatus.isGranted) {
         showErrSnackBar(
-            context, 'Camera permission is required to take photos.');
+            context, 'Требуется разрешение камеры для создания фото.');
         return;
       }
 
@@ -647,7 +672,7 @@ class _ProfileState extends State<ProfileUI> {
         maxWidth: 300,
         maxHeight: 300,
         imageQuality: 95,
-        preferredCameraDevice: CameraDevice.front, // Селфи камера
+        preferredCameraDevice: CameraDevice.front,
       );
       if (image == null) return;
       if (!mounted) return;

@@ -135,7 +135,7 @@ Your continued use of the App after any modifications indicates your acceptance 
 If you have any questions about this Privacy Policy or our data practices, please contact us at:
 
 **Email:** rstrelba@gmail.com
-**Website:** https://ms.afisha.news
+**Website:** https://mysterioussanta.afisha.news
 
 ## Legal Basis for Processing (EU Users)
 
