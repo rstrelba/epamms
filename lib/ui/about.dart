@@ -76,9 +76,12 @@ class _AboutState extends State<AboutUI> with TickerProviderStateMixin {
 
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    /*
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
+    */
   }
 
   @override
@@ -464,20 +467,27 @@ class _AboutState extends State<AboutUI> with TickerProviderStateMixin {
             _buildContactItem(
               Icons.web,
               'Website',
-              'ms.afisha.news',
-              () => _launchURL('https://ms.afisha.news'),
+              'mysterioussanta.afisha.news',
+              () => _launchURL('https://mysterioussanta.afisha.news'),
             ),
             _buildContactItem(
               Icons.email,
               'Support Email',
-              'support@afisha.news',
-              () => _launchURL('mailto:support@afisha.news'),
+              'rstrelba@gmail.com',
+              () => _launchURL('mailto:rstrelba@gmail.com'),
+            ),
+            _buildContactItem(
+              Icons.phone,
+              'Support phone',
+              '+380949474765',
+              () => _launchURL('tel:+38094947476'),
             ),
             _buildContactItem(
               Icons.privacy_tip,
               'Privacy Policy',
               'View our privacy policy',
-              () => _launchURL('https://ms.afisha.news/privacy_policy.html'),
+              () => _launchURL(
+                  'https://mysterioussanta.afisha.news/privacy_policy.html'),
             ),
           ],
         ),

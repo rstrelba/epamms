@@ -103,7 +103,9 @@ class API {
       throw Exception("Internet request failed with status: " +
           response.statusCode.toString());
     }
+    debugPrint("Response= ${response.body}");
     final result = jsonDecode(response.body);
+    debugPrint("Result= $result");
     if (result is Map) if (result.containsKey('err')) {
       final err = result['err'];
       if (err != null && err is String && err.isNotEmpty) {

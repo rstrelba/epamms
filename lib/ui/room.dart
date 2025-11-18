@@ -32,6 +32,7 @@ class _RoomState extends State<RoomUI> {
   bool isVisible = false;
   DateTime? exchangeDate;
   List<dynamic> recipients = [];
+  bool isRandomized = false;
 
   @override
   void initState() {
@@ -64,6 +65,7 @@ class _RoomState extends State<RoomUI> {
       _budgetController?.text = (res['budget'] ?? 0).toString();
       clientsCount = res['clientsCount'] ?? 0;
       isVisible = res['isVisible'] ?? false;
+      isRandomized = res['isRandomized'] ?? false;
       final exchangeDateStr = res['exchangeDate'];
       if (exchangeDateStr != null &&
           exchangeDateStr is String &&
@@ -234,26 +236,30 @@ class _RoomState extends State<RoomUI> {
               ],
             ),
             SizedBox(height: 10),
-            Center(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  //shape: CircleBorder(),
-                  padding: EdgeInsets.all(1),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  elevation: 4,
-                ),
-                onPressed: () {
-                  _doRandomize(
-                      context); // TODO: Implement AI suggestion logic here
-                },
-                icon: Icon(Icons.admin_panel_settings_outlined,
-                    size: 32), // Gemini-like sparkle
-                label: Padding(
-                  padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                  child: Text(
-                    'Randomize room!',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            Visibility(
+              visible: !isRandomized,
+              child: Center(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    //shape: CircleBorder(),
+                    padding: EdgeInsets.all(1),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 4,
+                  ),
+                  onPressed: () {
+                    _doRandomize(
+                        context); // TODO: Implement AI suggestion logic here
+                  },
+                  icon: Icon(Icons.admin_panel_settings_outlined,
+                      size: 32), // Gemini-like sparkle
+                  label: Padding(
+                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                    child: Text(
+                      'Randomize room!',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
                   ),
                 ),
               ),
@@ -405,7 +411,12 @@ class _RoomState extends State<RoomUI> {
             "You need at least 2 participants to randomize the room!".ii());
         return;
       }
-      await API.doRandomize(roomId);
+      final res = await API.doRandomize(roomId);
+      if (!mounted) return;
+      if (res['error'] != null) {
+        showErrSnackBar(context, res['error'].ii());
+        return;
+      }
       showSnackBar(context, "Room randomized successfully!".ii());
     } catch (e) {
       showErrSnackBar(context, e.toString());

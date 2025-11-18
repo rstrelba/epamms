@@ -157,10 +157,10 @@ class AppState with ChangeNotifier {
     return 'version $appVersion';
   }
 
-  // Метод для обновления языка и уведомления всех слушателей
+  // Method for updating the language and notifying all listeners
   Future<void> updateLanguage(String language) async {
     await TranslationService.instance.setLanguage(language);
-    notifyListeners(); // Уведомляем все виджеты об изменении
+    notifyListeners(); // Notify all widgets about the change
   }
 
   /*

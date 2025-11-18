@@ -268,16 +268,17 @@ class _RoomViewState extends State<RoomViewUI> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipOval(
-            child: SizedBox(
-              width: 300,
-              height: 300,
-              child: (recipientInfo['photo'] != null &&
-                      recipientInfo['photo'] == true)
-                  ? Image.network(
-                      'https://ms.afisha.news/photo.php?id=${recipientInfo['id']}',
-                      fit: BoxFit.cover)
-                  : Image.asset('images/user.png', fit: BoxFit.cover),
+          Center(
+            child: ClipOval(
+              child: SizedBox(
+                width: 300,
+                height: 300,
+                child: (recipientInfo['photo'].isNotEmpty)
+                    ? Image.network(
+                        'https://mysterioussanta.afisha.news/photo.php?id=${recipientInfo['id']}',
+                        fit: BoxFit.cover)
+                    : Image.asset('images/user.png', fit: BoxFit.cover),
+              ),
             ),
           ),
           SizedBox(height: 10),
