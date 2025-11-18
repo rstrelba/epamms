@@ -239,7 +239,7 @@ class _LoginState extends State<LoginUI> {
     }
 
     //@todo implement doForgetPassword
-    //await API.doForgetPassword(email);
+    await API.forgetPassword(email);
     _showNote("Wait for the e-mail with your password!".ii());
   }
 
@@ -318,7 +318,7 @@ class _LoginState extends State<LoginUI> {
   }
 
   void _doLoginWithGoogle() async {
-    const List<String> scopes = <String>['email', 'profile', 'openid'];
+    const List<String> scopes = <String>['email'];
     GoogleSignInAccount? user;
 
     try {

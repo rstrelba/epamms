@@ -33,7 +33,7 @@ class _ProfileState extends State<ProfileUI> {
 
   // Nova Poshta data
   List npAreaList = [];
-  String? npArea = '';
+  String? npArea = null;
   List npCityList = [];
   String? npCity = '';
   List npWhList = [];
@@ -65,6 +65,7 @@ class _ProfileState extends State<ProfileUI> {
       npAreaList.addAll(await API.getNPArea());
       debugPrint(npAreaList.toString());
       profile = await API.getProfile(widget.id);
+      debugPrint(profile.toString());
       if (!mounted) return;
       if (profile['wishlist'] != null && profile['wishlist'].isNotEmpty) {
         wishlist.addAll(profile['wishlist'] as List);
@@ -389,8 +390,9 @@ class _ProfileState extends State<ProfileUI> {
                   child: Text(item['name'], overflow: TextOverflow.ellipsis),
                   value: item['id']))
               .toList(),
-          value: npAreaList.any((item) => item['id'] == npArea) ? npArea : null,
+          value: npArea,
           onChanged: (value) async {
+            npArea = value as String?;
             if (npArea != null && npArea!.isNotEmpty) {
               await _loadNPCity(value as String?);
             }
@@ -409,13 +411,12 @@ class _ProfileState extends State<ProfileUI> {
                   child: Text(item['name'], overflow: TextOverflow.ellipsis),
                   value: item['id']))
               .toList(),
-          value: npCityList.any((item) => item['id'] == npCity) ? npCity : null,
+          //value: npCityList.any((item) => item['id'] == npCity) ? npCity : null,
+          value: npCity,
           onChanged: (value) async {
-            await _loadNPWh(value as String?);
+            npCity = value as String?;
+            await _loadNPWh(value);
             wasEdited = true;
-            setState(() {
-              npCity = value;
-            });
           },
         ),
         if (npCity != null && npCity!.isNotEmpty) ...[
@@ -424,7 +425,16 @@ class _ProfileState extends State<ProfileUI> {
             isExpanded: true,
             items: npWhList
                 .map((item) => DropdownMenuItem(
-                    child: Text(item['name'], overflow: TextOverflow.ellipsis),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.8),
+                      child: Text(
+                        item['name'],
+                        softWrap: true,
+                        maxLines: 5,
+                        //overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     value: item['id']))
                 .toList(),
             value: npWhList.any((item) => item['id'] == npWh) ? npWh : null,
@@ -443,6 +453,9 @@ class _ProfileState extends State<ProfileUI> {
 
   Future<void> _loadNPCity(String? npArea) async {
     debugPrint('_loadNPCity: ${npArea}');
+    setState(() {
+      isLoadingNP = true;
+    });
     try {
       final res = await API.getNPCity(npArea);
       if (!mounted) return;
@@ -455,11 +468,18 @@ class _ProfileState extends State<ProfileUI> {
       if (mounted) {
         showErrSnackBar(context, e.toString());
       }
+    } finally {
+      setState(() {
+        isLoadingNP = false;
+      });
     }
   }
 
   Future<void> _loadNPWh(String? npCity) async {
     debugPrint('_loadNPWh: ${npCity}');
+    setState(() {
+      isLoadingNP = true;
+    });
     try {
       final res = await API.getNPWh(npCity);
       if (!mounted) return;
@@ -470,6 +490,10 @@ class _ProfileState extends State<ProfileUI> {
       if (mounted) {
         showErrSnackBar(context, e.toString());
       }
+    } finally {
+      setState(() {
+        isLoadingNP = false;
+      });
     }
   }
 
@@ -558,7 +582,7 @@ class _ProfileState extends State<ProfileUI> {
               child: SizedBox(
                 width: 300,
                 height: 300,
-                child: (profile['photo'].isNotEmpty
+                child: (profile['photo'].toString().isNotEmpty
                     ? Image.network(profile['photo'], fit: BoxFit.cover)
                     : Image.asset('images/user.png', fit: BoxFit.cover)),
               ),
@@ -583,7 +607,8 @@ class _ProfileState extends State<ProfileUI> {
               context: context,
               builder: (context) => AlertDialog(
                 title: Text('Camera Permission Required'),
-                content: Text('Please enable camera permission in Settings to take selfies.'),
+                content: Text(
+                    'Please enable camera permission in Settings to take selfies.'),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -600,21 +625,23 @@ class _ProfileState extends State<ProfileUI> {
               ),
             );
           } else {
-            showErrSnackBar(context, 'Camera permission denied. Please try again.');
+            showErrSnackBar(
+                context, 'Camera permission denied. Please try again.');
           }
           return;
         }
       }
 
       if (!mounted) return;
-      
+
       // Double-check permission before using camera
       final currentStatus = await Permission.camera.status;
       if (!currentStatus.isGranted) {
-        showErrSnackBar(context, 'Camera permission is required to take photos.');
+        showErrSnackBar(
+            context, 'Camera permission is required to take photos.');
         return;
       }
-      
+
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.camera,
         maxWidth: 300,
@@ -637,7 +664,6 @@ class _ProfileState extends State<ProfileUI> {
         await API.putPhoto({
           'photo': base64Image,
         });
-        profile['photo'] = API.dbPhotoUrl + profile['id'].toString();
 
         if (!mounted) return;
         showSnackBar(context, 'Photo saved successfully');
@@ -650,7 +676,7 @@ class _ProfileState extends State<ProfileUI> {
 
       if (!mounted) return;
       setState(() {
-        profile['photo'] = true;
+        profile['photo'] = API.dbPhotoUrl + profile['id'].toString();
       });
     } catch (e) {
       if (mounted) {
@@ -659,19 +685,19 @@ class _ProfileState extends State<ProfileUI> {
     }
   }
 
-  Widget _buildWishlistItem(context, itemMap) {
+  Widget _buildWishlistItem(context, item) {
     return AbsorbPointer(
       absorbing: isReadOnly,
       child: Container(
         margin: EdgeInsets.only(bottom: 10),
         //padding: EdgeInsets.all(8),
         child: Dismissible(
-          key: Key('wishlist_${itemMap['id']}'),
+          key: Key('wishlist_${item['id']}'),
           onDismissed: (direction) {
             //_delWishlist(itemMap['id']);
             wasEdited = true;
             setState(() {
-              wishlist.remove(itemMap);
+              wishlist.remove(item);
             });
           },
           confirmDismiss: (direction) async {
@@ -689,12 +715,12 @@ class _ProfileState extends State<ProfileUI> {
                             child: Text('Cancel'.ii())),
                         TextButton(
                             onPressed: () async {
-                              await API.delWishlist(itemMap['id']);
+                              await API.delWishlist(item['id']);
                               if (!mounted) return;
                               showSnackBar(
                                   context, 'Wishlist deleted successfully');
                               setState(() {
-                                profile['wishlist'].remove(itemMap);
+                                profile['wishlist'].remove(item);
                               });
                               Navigator.of(context).pop(true);
                             },
@@ -709,15 +735,17 @@ class _ProfileState extends State<ProfileUI> {
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
                   onTap: () async {
+                    debugPrint('onTap: ${item['id']}');
                     final wish = await Navigator.of(context).push<Map>(
                       MaterialPageRoute(
-                          builder: (context) =>
-                              WishEditUI(wishId: itemMap['id'])),
+                          builder: (context) => WishEditUI(wishId: item['id'])),
                     );
                     setState(() {
                       wasEdited = true;
-                      wishlist.remove(itemMap);
-                      if (wish != null) wishlist.add(wish);
+                      if (wish != null) {
+                        wishlist.remove(item);
+                        wishlist.add(wish);
+                      }
                     });
                   },
                   child: Column(
@@ -725,18 +753,18 @@ class _ProfileState extends State<ProfileUI> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        itemMap['name'],
+                        item['name'],
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 18),
                         softWrap: true,
                         overflow: TextOverflow.visible,
                         maxLines: null,
                       ),
-                      if (itemMap['description'].isNotEmpty)
+                      if (item['description'].isNotEmpty)
                         Padding(
                           padding: EdgeInsets.only(top: 4),
                           child: Text(
-                            itemMap['description'],
+                            item['description'],
                             style: TextStyle(
                                 fontSize: 12, color: Colors.grey.shade700),
                             softWrap: true,
@@ -746,11 +774,11 @@ class _ProfileState extends State<ProfileUI> {
                   ),
                 ),
               ),
-              itemMap['url'].isNotEmpty
+              item['url'].isNotEmpty
                   ? GestureDetector(
                       onTap: () {
-                        if (itemMap['url'].isNotEmpty) {
-                          launchUrl(Uri.parse(itemMap['url']),
+                        if (item['url'].isNotEmpty) {
+                          launchUrl(Uri.parse(item['url']),
                               mode: LaunchMode.externalApplication);
                         }
                       },

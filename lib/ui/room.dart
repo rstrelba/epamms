@@ -153,7 +153,7 @@ class _RoomState extends State<RoomUI> {
                     },
                   ),
                 ),
-                Text('Active'.ii())
+                Text('Public'.ii())
               ],
             ),
             Text('Public rooms available for all users'.ii(),

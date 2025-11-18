@@ -22,7 +22,7 @@ class RoomViewUI extends StatefulWidget {
   final String roomSecret;
   @override
   State<StatefulWidget> createState() => _RoomViewState();
-  RoomViewUI({super.key, required this.roomSecret });
+  RoomViewUI({super.key, required this.roomSecret});
 }
 
 class _RoomViewState extends State<RoomViewUI> {
@@ -55,7 +55,7 @@ class _RoomViewState extends State<RoomViewUI> {
   void _load() async {
     try {
       FirebaseAnalytics.instance.logEvent(name: 'roomview');
-    final res = await API.getRoom(widget.roomSecret);
+      final res = await API.getRoom(widget.roomSecret);
       if (!mounted) return;
       roomId = res['roomId'];
       title = res['title'];
@@ -121,7 +121,8 @@ class _RoomViewState extends State<RoomViewUI> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => RoomUI(roomSecret: roomSecret)));
+                            builder: (context) =>
+                                RoomUI(roomSecret: roomSecret)));
                   },
                   mini: true,
                   elevation: 10,
@@ -229,7 +230,7 @@ class _RoomViewState extends State<RoomViewUI> {
       if (isParticipant) {
         params['state'] = 'unenroll';
       }
-      final res=await API.doEnroll(params);
+      final res = await API.doEnroll(params);
       if (!mounted) return;
       if (res['result'] == 'ok') {
         setState(() {
@@ -455,7 +456,7 @@ class _RoomViewState extends State<RoomViewUI> {
       SharePlus.instance.share(params);
 
       if (mounted) {
-        //showSnackBar(context, 'Room link copied to clipboard'.ii());
+        showSnackBar(context, 'Room link copied to clipboard'.ii());
       }
     } catch (e) {
       debugPrint('Error copying room link: $e');

@@ -300,4 +300,8 @@ class API {
   static Future putProfile(Map profile) async {
     return queryBackend("put-profile.php", profile);
   }
+
+  static Future forgetPassword(String email) async {
+    return queryBackend("do-forget-pas.php", {"email": email});
+  }
 }

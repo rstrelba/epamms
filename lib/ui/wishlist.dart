@@ -35,6 +35,7 @@ class _WishEditState extends State<WishEditUI> {
     try {
       FirebaseAnalytics.instance.logEvent(name: 'wishlist');
       wish = await API.getWish(widget.wishId);
+      debugPrint(wish.toString());
     } on Exception catch (e) {
       showErrSnackBar(context, e.toString());
     } finally {
