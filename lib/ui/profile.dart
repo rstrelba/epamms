@@ -597,10 +597,11 @@ class _ProfileState extends State<ProfileUI> {
     try {
       if (!mounted) return;
       final camStatus = await Permission.camera.status;
+      debugPrint('camStatus: ${camStatus.toString()}');
       if (!camStatus.isGranted) {
         final camRequest = await Permission.camera.request();
         if (!camRequest.isGranted) {
-          return null; 
+          return null;
         }
       }
 
