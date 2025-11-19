@@ -213,6 +213,7 @@ class _RoomState extends State<RoomUI> {
                       if (picked != null) {
                         setState(() {
                           exchangeDate = picked;
+                          debugPrint("exchangeDate=$exchangeDate");
                         });
                       }
                     },
@@ -265,6 +266,7 @@ class _RoomState extends State<RoomUI> {
             SizedBox(height: 20),
             _buildRecipients(context),
             InfoUI(text: 'Swipe right to remove recipient from room'.ii()),
+            SizedBox(height: 200),
           ],
         ),
       ),
@@ -409,12 +411,12 @@ class _RoomState extends State<RoomUI> {
         return;
       }
       showSnackBar(context, "Room randomized successfully!".ii());
+      isRandomized = true;
     } catch (e) {
       showErrSnackBar(context, e.toString());
     } finally {
       setState(() {
         _isLoading = false;
-        isRandomized = true;
       });
     }
   }

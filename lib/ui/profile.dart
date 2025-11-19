@@ -594,12 +594,27 @@ class _ProfileState extends State<ProfileUI> {
   Future<void> _takeSelfie() async {
     try {
       if (!mounted) return;
-      final camStatus = await Permission.camera.status;
-      debugPrint('camStatus: ${camStatus.toString()}');
-      if (!camStatus.isGranted) {
-        final camRequest = await Permission.camera.request();
-        if (!camRequest.isGranted) {
-          return null;
+
+      final isIOS = Platform.isIOS;
+
+      // --------------------
+      // 1. ANDROID
+      // --------------------
+      if (!isIOS) {
+        final status = await Permission.camera.status;
+
+        if (!status.isGranted) {
+          final req = await Permission.camera.request();
+
+          if (req.isPermanentlyDenied) {
+            // Open system settings
+            await openAppSettings();
+            return;
+          }
+
+          if (!req.isGranted) {
+            return; // No camera access
+          }
         }
       }
 

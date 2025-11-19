@@ -117,12 +117,15 @@ class _RoomViewState extends State<RoomViewUI> {
                 visible: isOwner,
                 child: FloatingActionButton(
                   heroTag: 'doEdit',
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    await Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) =>
                                 RoomUI(roomSecret: roomSecret)));
+                    if (!mounted) return;
+                    _load();
+                    setState(() {});
                   },
                   mini: true,
                   elevation: 10,
