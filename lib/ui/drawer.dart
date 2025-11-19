@@ -210,8 +210,20 @@ class _DrawlerState extends State<DrawerUI>
           ),
           title: Text('Telegram group'.ii()),
           onTap: () async {
-            final Uri url = Uri.parse("https://t.me/mysterioussanta");
-            await launchUrl(url, mode: LaunchMode.externalApplication);
+            final url = Uri.parse("tg://resolve?domain=mysterioussanta");
+
+            if (await canLaunchUrl(url)) {
+              await launchUrl(
+                url,
+                mode: LaunchMode.externalApplication,
+              );
+            } else {
+              // fallback to browser
+              await launchUrl(
+                Uri.parse("https://t.me/mysterioussanta"),
+                mode: LaunchMode.externalApplication,
+              );
+            }
           },
         ),
 
