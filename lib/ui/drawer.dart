@@ -7,6 +7,7 @@ import 'package:epamms/ui/roomview.dart';
 import 'package:epamms/ui/settings.dart';
 import 'package:epamms/ui/snack_bar.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -172,6 +173,7 @@ class _DrawlerState extends State<DrawerUI>
                 return;
               }
               //Navigator.pop(context);
+              FirebaseAnalytics.instance.logEvent(name: 'drawer_qr_scan');
               Navigator.push(
                   context,
                   MaterialPageRoute(

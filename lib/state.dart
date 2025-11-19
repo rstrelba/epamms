@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:app_links/app_links.dart';
 import 'package:epamms/ui/room.dart';
 import 'package:epamms/ui/roomview.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -449,6 +450,8 @@ class AppState with ChangeNotifier {
       _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
         debugPrint('onAppLink: $uri');
         openAppLink(uri);
+        FirebaseAnalytics.instance.logEvent(
+            name: 'deep_link_open', parameters: {'uri': uri.toString()});
       });
 
       debugPrint('Deep links initialized successfully');

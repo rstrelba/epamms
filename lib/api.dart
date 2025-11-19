@@ -119,6 +119,7 @@ class API {
     Map params = Map();
     params["fcmToken"] = await getFbToken();
     params["lang"] = await getLang();
+    params["device"] = await getDeviceName();
     return queryBackend("auth.php", params);
   }
 
@@ -131,6 +132,7 @@ class API {
     params["sToken"] = await getToken();
     params["fcmToken"] = await getFbToken();
     params["lang"] = await getLang();
+    params["device"] = await getDeviceName();
     return queryBackend("login.php", params);
   }
 
@@ -163,6 +165,7 @@ class API {
     params["device"] = await getDeviceName();
     params["fcmToken"] = await getFbToken();
     params["lang"] = await getLang();
+    params["device"] = await getDeviceName();
     return queryBackend("login-with-google.php", params);
   }
 

@@ -422,6 +422,7 @@ class _RoomViewState extends State<RoomViewUI> {
 
   Future<void> _copyQrToClipboard() async {
     try {
+      FirebaseAnalytics.instance.logEvent(name: 'roomview_qr_copy');
       final RenderObject? renderObject =
           _qrKey.currentContext?.findRenderObject();
       if (renderObject == null || renderObject is! RenderRepaintBoundary) {
@@ -458,6 +459,7 @@ class _RoomViewState extends State<RoomViewUI> {
 
   Future<void> _copyRoomLinkToClipboard() async {
     try {
+      FirebaseAnalytics.instance.logEvent(name: 'roomview_link_share');
       final roomLink =
           'https://mysterioussanta.afisha.news/room/' + roomSecret.toString();
       await Clipboard.setData(ClipboardData(text: roomLink));

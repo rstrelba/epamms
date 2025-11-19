@@ -405,6 +405,7 @@ class _RoomState extends State<RoomUI> {
         _isLoading = true;
       });
       final res = await API.doRandomize(roomId);
+      FirebaseAnalytics.instance.logEvent(name: 'room_randomize');
       if (!mounted) return;
       if (res['error'] != null) {
         showErrSnackBar(context, res['error'].ii());
