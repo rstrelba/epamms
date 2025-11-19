@@ -160,7 +160,7 @@ flutter run
 
 ---
 
-*Створено з ❤️ для організації незабутніх святкових моментів*
+*Створено з ❤️ для організації незабутніх святкових моментів (EMAP camp 2025)*
 
-Github: https://github.com/rstrelba/epamms
-Homepage: https://mysterioussanta.afisha.news/
+*Github: https://github.com/rstrelba/epamms*
+*Homepage: https://mysterioussanta.afisha.news/*
