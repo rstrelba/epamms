@@ -45,10 +45,11 @@ dependencies:
   flutter_native_splash: ^2.4.7
   qr_flutter: ^4.1.0
   top_snackbar_flutter: ^3.3.0
-  image_picker: ^1.2.0
+  image_picker: ^1.2.1
   permission_handler: ^12.0.1
   simple_barcode_scanner: ^0.4.0
   share_plus: ^12.0.1
+  flutter_exif_rotation: ^0.5.2
 
 
 dev_dependencies:

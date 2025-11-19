@@ -7,6 +7,7 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_exif_rotation/flutter_exif_rotation.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -629,9 +630,12 @@ class _ProfileState extends State<ProfileUI> {
       if (!mounted) return;
 
       final File imageFile = File(image.path);
+      final File rotatedImage =
+          await FlutterExifRotation.rotateImage(path: imageFile.path);
 
       // Convert image to base64
-      Uint8List imageBytes = await imageFile.readAsBytes();
+      Uint8List imageBytes = await rotatedImage.readAsBytes();
+      await rotatedImage.delete();
       String base64Image = base64Encode(imageBytes);
 
       // Save photo to backend
