@@ -67,18 +67,18 @@
 		<string>applinks:mysterioussanta.afisha.news</string>
 	</array>
 	
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+  		<string>tg</string>
+  		<string>telegram</string>
+	</array>
+
 	<!-- Camera and Photo Library Permissions -->
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs access to camera to take photos for your profile and wishes</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs access to photo library to select images for your profile and wishes</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<key>LSApplicationQueriesSchemes</key>
-<array>
-  <string>tg</string>
-  <string>telegram</string>
-</array>
-
-<string>This app needs access to save photos</string>
-</dict>
+	<string>This app needs access to save photos</string>
+	</dict>
 </plist>
