@@ -221,6 +221,7 @@ class _DrawlerState extends State<DrawerUI>
         ),
         Center(child: Text('Developed for EPAM CAMPUS 2025')),
         Center(child: Image.asset('images/epam.png', width: 200, height: 200)),
+        SizedBox(height: 20),
       ],
     ));
   }

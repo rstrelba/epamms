@@ -317,8 +317,13 @@ class _ProfileState extends State<ProfileUI> {
           ),
           _buildSelfie(context),
           Center(
-              child: Text('Tap to take a selfie'.ii(),
-                  style: TextStyle(fontSize: 12))),
+              child: InfoUI(
+            text: 'Tap to take a selfie'.ii(),
+          )),
+          Center(
+              child: InfoUI(
+            text: 'Swipe right to delete selfie'.ii(),
+          )),
           SizedBox(height: 10),
           Divider(),
           Row(
@@ -542,54 +547,47 @@ class _ProfileState extends State<ProfileUI> {
   Widget _buildSelfie(context) {
     return AbsorbPointer(
       absorbing: isReadOnly,
-      child: Dismissible(
-        key: Key('selfie'),
-        onDismissed: (direction) {
-          setState(() {});
-        },
-        confirmDismiss: (direction) async {
-          return await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                    title: Text('Delete selfie?'.ii()),
-                    content: Text(
-                        'Are you sure you want to delete your selfie?'.ii()),
-                    actions: [
-                      TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(false);
-                          },
-                          child: Text('Cancel'.ii())),
-                      TextButton(
-                          onPressed: () async {
-                            await API.delPhoto();
-                            if (!mounted) return;
-                            showSnackBar(context, 'Photo deleted successfully');
-                            setState(() {
-                              profile['photo'] = false;
-                              profile['selfiePath'] = null;
-                            });
-                            Navigator.of(context).pop(true);
-                          },
-                          child: Text('Delete'.ii())),
-                    ],
-                  ));
-        },
-        child: GestureDetector(
-          onTap: _takeSelfie,
-          child: Center(
-            child: ClipOval(
-              child: SizedBox(
-                width: 300,
-                height: 300,
-                child: (profile['photo'].toString().isNotEmpty
-                    ? Image.network(profile['photo'], fit: BoxFit.cover)
-                    : Image.asset('images/user.png', fit: BoxFit.cover)),
+      child: profile['photo'].toString().isNotEmpty
+          ? Dismissible(
+              key: Key(
+                  'selfie_${profile['photo']}'), // Уникальный ключ с URL фото
+              onDismissed: ((direction) async {
+                await API.delPhoto();
+                setState(() {
+                  profile['photo'] = '';
+                  //profile['selfiePath'] = null;
+                });
+                if (!mounted) return;
+                showSnackBar(context, 'Photo deleted successfully');
+              }),
+              confirmDismiss: ((direction) async {
+                return await showYesNoDialog(context, 'Delete selfie?'.ii());
+              }),
+              child: GestureDetector(
+                onTap: _takeSelfie,
+                child: Center(
+                  child: ClipOval(
+                    child: SizedBox(
+                      width: 300,
+                      height: 300,
+                      child: Image.network(profile['photo'], fit: BoxFit.cover),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : GestureDetector(
+              onTap: _takeSelfie,
+              child: Center(
+                child: ClipOval(
+                  child: SizedBox(
+                    width: 300,
+                    height: 300,
+                    child: Image.asset('images/user.png', fit: BoxFit.cover),
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -655,41 +653,30 @@ class _ProfileState extends State<ProfileUI> {
         margin: EdgeInsets.only(bottom: 10),
         //padding: EdgeInsets.all(8),
         child: Dismissible(
-          key: Key('wishlist_${item['id']}'),
-          onDismissed: (direction) {
-            //_delWishlist(itemMap['id']);
+          key: Key('wishlist_${item['id']}_${item.hashCode}'),
+          onDismissed: (direction) async {
+            try {
+              await API.delWishlist(item['id']);
+              if (!mounted) return;
+              showSnackBar(context, 'Wishlist deleted successfully');
+            } catch (e) {
+              if (mounted) {
+                showErrSnackBar(
+                    context, 'Error deleting wish: ${e.toString()}');
+              }
+              return; // Don't remove from UI if API returned an error
+            }
+
             wasEdited = true;
             setState(() {
               wishlist.remove(item);
+              if (profile['wishlist'] != null) {
+                profile['wishlist'].remove(item);
+              }
             });
           },
           confirmDismiss: (direction) async {
-            return await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                      title: Text('Delete your wish?'.ii()),
-                      content: Text(
-                          'Are you sure you want to delete this wish?'.ii()),
-                      actions: [
-                        TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(false);
-                            },
-                            child: Text('Cancel'.ii())),
-                        TextButton(
-                            onPressed: () async {
-                              await API.delWishlist(item['id']);
-                              if (!mounted) return;
-                              showSnackBar(
-                                  context, 'Wishlist deleted successfully');
-                              setState(() {
-                                profile['wishlist'].remove(item);
-                              });
-                              Navigator.of(context).pop(true);
-                            },
-                            child: Text('Delete'.ii())),
-                      ],
-                    ));
+            return await showYesNoDialog(context, 'Delete your wish?'.ii());
           },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -769,6 +756,13 @@ class _ProfileState extends State<ProfileUI> {
                 return _buildWishlistItem(context, wishlist[index]);
               },
               itemCount: wishlist.length,
+            ),
+            Visibility(
+              visible: wishlist.isNotEmpty,
+              child: Center(
+                  child: InfoUI(
+                text: 'Swipe right to delete wish'.ii(),
+              )),
             ),
             Container(
               margin: EdgeInsets.only(top: 10),

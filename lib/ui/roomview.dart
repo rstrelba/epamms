@@ -182,6 +182,12 @@ class _RoomViewState extends State<RoomViewUI> {
                                   ': ' +
                                   clientsCount.toString(),
                               style: TextStyle(fontSize: 16)),
+                          InfoUI(
+                              text:
+                                  'Star icon means you are a participant'.ii()),
+                          InfoUI(
+                            text: 'Profile icon means you are an owner'.ii(),
+                          ),
                         ],
                       ),
                     ),

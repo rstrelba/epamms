@@ -46,6 +46,31 @@ Future<bool> showYesNoDialog(BuildContext context, String text) async {
   return result ?? false;
 }
 
+class InfoUI extends StatelessWidget {
+  final String text;
+  const InfoUI({Key? key, required this.text}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.info_outline,
+          color: Colors.blue,
+        ),
+        SizedBox(width: 8),
+        Text(
+          text,
+          style: TextStyle(color: Colors.black87, fontSize: 12),
+          softWrap: true,
+        ),
+      ],
+    );
+  }
+}
+
 /*
 void showSnackBar(BuildContext context, String message) {
   final snackBar = SnackBar(

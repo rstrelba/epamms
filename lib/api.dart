@@ -211,7 +211,7 @@ class API {
   }
 
   static Future delWishlist(int id) async {
-    return queryBackend("del-wishlist.php", {"id": id});
+    return queryBackend("del-wish.php", {"id": id});
   }
 
   static Future getWish(int id) async {

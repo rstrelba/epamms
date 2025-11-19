@@ -55,14 +55,6 @@ class _WishEditState extends State<WishEditUI> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          FloatingActionButton(
-            heroTag: 'delete_wish',
-            onPressed: () {
-              _delete(context);
-            },
-            child: Icon(Icons.delete),
-            mini: true,
-          ),
           SizedBox(height: 10),
           FloatingActionButton(
             heroTag: 'save_wish',
@@ -172,6 +164,11 @@ class _WishEditState extends State<WishEditUI> {
                 return _buildAIWish(context, index);
               },
             ),
+          Visibility(
+              visible: wishlistAI.isNotEmpty,
+              child: InfoUI(
+                  text:
+                      'Tap AI generated wish to add it to your wishlist'.ii())),
         ]));
   }
 

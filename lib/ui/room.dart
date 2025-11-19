@@ -266,6 +266,8 @@ class _RoomState extends State<RoomUI> {
             ),
             SizedBox(height: 20),
             _buildRecipients(context),
+            Text('*Swipe right to remove recipient from room'.ii(),
+                style: TextStyle(fontSize: 12)),
           ],
         ),
       ),
@@ -352,24 +354,8 @@ class _RoomState extends State<RoomUI> {
               });
             },
             confirmDismiss: (direction) async {
-              return await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                        title: Text('Delete recipient?'.ii()),
-                        content: Text(
-                            'Are you sure you want to delete this recipient?'
-                                .ii()),
-                        actions: <Widget>[
-                          ElevatedButton(
-                            child: Text('Yes'.ii()),
-                            onPressed: () => Navigator.pop(context, true),
-                          ),
-                          ElevatedButton(
-                            child: Text('No'.ii()),
-                            onPressed: () => Navigator.pop(context, false),
-                          ),
-                        ],
-                      ));
+              return await showYesNoDialog(context, 'Are you sure to remove this recipient?'.ii());
+             
             },
             child: GestureDetector(
               onTap: () {
