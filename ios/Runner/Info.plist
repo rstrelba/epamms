@@ -73,6 +73,12 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs access to photo library to select images for your profile and wishes</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
+	<key>LSApplicationQueriesSchemes</key>
+<array>
+  <string>tg</string>
+  <string>telegram</string>
+</array>
+
 <string>This app needs access to save photos</string>
 </dict>
 </plist>

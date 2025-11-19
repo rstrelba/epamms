@@ -203,6 +203,7 @@ class _WishEditState extends State<WishEditUI> {
           previousWishesAI.add(wish['name']);
         }
       });
+      FirebaseAnalytics.instance.logEvent(name: 'wishlist_ai');
     } on Exception catch (e) {
       showErrSnackBar(context, e.toString());
     } finally {}
