@@ -127,7 +127,7 @@ class _SettingsState extends State<SettingsUI> {
                           : _availableLanguages.first,
                       isExpanded: true,
                       underline:
-                          const SizedBox(), // убираем стандартное подчеркивание
+                          const SizedBox(), // remove standard underline
                       items: _availableLanguages.map((String language) {
                         final displayName = _getLanguageName(language);
                         return DropdownMenuItem<String>(
@@ -149,7 +149,7 @@ class _SettingsState extends State<SettingsUI> {
     );
   }
 
-  // Метод для получения человеко-читаемого названия языка
+  // Method to get human-readable language name
   String _getLanguageName(String languageCode) {
     return SupportedLanguages.getNativeNameByCode(languageCode);
   }

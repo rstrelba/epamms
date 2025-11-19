@@ -437,7 +437,7 @@ class _RoomViewState extends State<RoomViewUI> {
 
       final Uint8List pngBytes = byteData.buffer.asUint8List();
 
-      // Используем MethodChannel для копирования изображения в буфер обмена
+      // Use MethodChannel to copy image to clipboard
       const platform = MethodChannel('com.mysterioussanta/clipboard');
       await platform.invokeMethod('copyImage', {'image': pngBytes});
 
@@ -521,7 +521,7 @@ class _RoomViewState extends State<RoomViewUI> {
         ElevatedButton.icon(
           onPressed: _copyRoomLinkToClipboard,
           icon: Icon(EvaIcons.link2),
-          label: Text('Copy room link'.ii()),
+          label: Text('Share room link'.ii()),
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),

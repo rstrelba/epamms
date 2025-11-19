@@ -61,10 +61,15 @@ class InfoUI extends StatelessWidget {
           color: Colors.blue,
         ),
         SizedBox(width: 8),
-        Text(
-          text,
-          style: TextStyle(color: Colors.black87, fontSize: 12),
-          softWrap: true,
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+            ),
+            softWrap: true,
+          ),
         ),
       ],
     );
@@ -76,14 +81,14 @@ void showSnackBar(BuildContext context, String message) {
   final snackBar = SnackBar(
     content: Text(message),
     action: SnackBarAction(
-      label: 'Отмена',
+      label: 'Cancel',
       onPressed: () {
-        // Действие при нажатии на кнопку "Отмена"
+        // Action when pressing the "Cancel" button
       },
     ),
   );
 
-  // Отображаем SnackBar
+  // Display SnackBar
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
@@ -93,14 +98,14 @@ void showErrSnackBar(BuildContext context, String message) {
 
     content: Text(message),
     action: SnackBarAction(
-      label: 'Отмена',
+      label: 'Cancel',
       onPressed: () {
-        // Действие при нажатии на кнопку "Отмена"
+        // Action when pressing the "Cancel" button
       },
     ),
   );
 
-  // Отображаем SnackBar
+  // Display SnackBar
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 */

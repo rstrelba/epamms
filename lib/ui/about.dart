@@ -14,7 +14,7 @@ class _AboutState extends State<AboutUI> with TickerProviderStateMixin {
   String appVersion = '';
   late AnimationController _animationController;
 
-  // Анимация оленя
+  // Deer animation
   final List<String> frames = [
     'images/logo-an-1.png',
     'images/logo-an-2.png',
@@ -44,7 +44,7 @@ class _AboutState extends State<AboutUI> with TickerProviderStateMixin {
 
   void _startDeerAnimation() {
     timer = Timer.periodic(const Duration(seconds: 3), (t) {
-      // Моргаем 3 кадра по 150 мс
+      // Blink 3 frames for 150ms each
       for (int i = 0; i < frames.length; i++) {
         Future.delayed(Duration(milliseconds: 150 * i), () {
           if (mounted) {
@@ -52,7 +52,7 @@ class _AboutState extends State<AboutUI> with TickerProviderStateMixin {
           }
         });
       }
-      // Возврат к первому кадру после моргания
+      // Return to first frame after blinking
       Future.delayed(const Duration(milliseconds: 450), () {
         if (mounted) {
           setState(() => frameIndex = 0);

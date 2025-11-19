@@ -57,7 +57,7 @@ class _DrawlerState extends State<DrawerUI>
 
   void _startBlinkingLoop() {
     timer = Timer.periodic(const Duration(seconds: 5), (t) {
-      // Моргаем 3 кадра по 100 мс
+      // Blink 3 frames for 100ms each
       for (int i = 0; i < frames.length; i++) {
         Future.delayed(Duration(milliseconds: 100 * i), () {
           if (mounted) {
@@ -65,7 +65,7 @@ class _DrawlerState extends State<DrawerUI>
           }
         });
       }
-      // Возврат к первому кадру после моргания
+      // Return to first frame after blinking
       Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted) {
           setState(() => frameIndex = 0);
@@ -162,7 +162,10 @@ class _DrawlerState extends State<DrawerUI>
             if (result != null) {
               // parse URL
               Uri uri = Uri.parse(result);
-              String? idParam = uri.queryParameters['id'];
+              debugPrint('QR code URI: ${uri.toString()}');
+              String? idParam =
+                  uri.pathSegments.isNotEmpty ? uri.pathSegments.last : null;
+              debugPrint('Room ID: ${idParam}');
               if (idParam == null) {
                 // id not found, do nothing or show error
                 showErrSnackBar(context, 'QR code is not valid');

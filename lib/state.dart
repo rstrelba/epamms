@@ -18,7 +18,7 @@ import 'ii.dart';
 class AppState with ChangeNotifier {
   static String? initialUri = "";
   static String? initialPush = "";
-  static String? cachedFcmToken; // Кэшируем токен FCM
+  static String? cachedFcmToken; // Cache FCM token
   late AndroidNotificationChannel channel;
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
   late BuildContext mContext;
@@ -57,7 +57,7 @@ class AppState with ChangeNotifier {
     return this;
   }
 
-  // Загружаем сохранённую тему
+  // Load saved theme
   Future<void> loadTheme() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String themeString = "system";
@@ -77,10 +77,10 @@ class AppState with ChangeNotifier {
     _themeMode = _mapAppThemeToThemeMode(theme);
     notifyListeners();
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('theme', theme.toString()); // Сохраняем в памяти
+    prefs.setString('theme', theme.toString()); // Save to memory
   }
 
-  // Преобразуем `AppTheme` в `ThemeMode`
+  // Convert `AppTheme` to `ThemeMode`
   ThemeMode _mapAppThemeToThemeMode(ThemeMode theme) {
     switch (theme) {
       case ThemeMode.light:
@@ -233,12 +233,12 @@ class AppState with ChangeNotifier {
       debugPrint(
           'Firebase messaging permission status: ${settings.authorizationStatus}');
 
-      // ВАЖНО: Получаем токен ТОЛЬКО если разрешение получено
-      // Это критично для Android 13+ и Samsung устройств
+      // IMPORTANT: Get token ONLY if permission is granted
+      // This is critical for Android 13+ and Samsung devices
       if (!GetPlatform.isWeb) {
         if (settings.authorizationStatus == AuthorizationStatus.authorized ||
             settings.authorizationStatus == AuthorizationStatus.provisional) {
-          // Небольшая задержка для стабилизации на Samsung устройствах
+          // Small delay for stabilization on Samsung devices
           await Future.delayed(const Duration(milliseconds: 500));
 
           String? token = await messaging.getToken();
@@ -252,7 +252,7 @@ class AppState with ChangeNotifier {
       }
     } catch (e) {
       debugPrint('Error requesting Firebase messaging permissions: $e');
-      return; // Выходим из функции если не можем получить разрешения
+      return; // Exit function if we can't get permissions
     }
 
     try {
@@ -262,8 +262,8 @@ class AppState with ChangeNotifier {
               'FirebaseMessaging.getInitialMessage ${message.data.toString()}');
           initialPush = message.data["url"];
           debugPrint('Saved initialPush: $initialPush');
-          // Не обрабатываем сразу, так как UI еще не готов
-          // Обработка будет в checkAndHandleInitialPush()
+          // Don't process immediately as UI is not ready yet
+          // Processing will be in checkAndHandleInitialPush()
         }
       });
     } catch (e) {
@@ -380,7 +380,7 @@ class AppState with ChangeNotifier {
         debugPrint("handleMessage params=$url");
         String? id = params[1].toString();
 
-        // Используем Navigator вместо Get.to для правильной передачи темы
+        // Use Navigator instead of Get.to for proper theme passing
         if (Get.context != null) {
           Navigator.of(Get.context!).push(
             MaterialPageRoute(
@@ -388,7 +388,7 @@ class AppState with ChangeNotifier {
             ),
           );
         } else {
-          // Fallback на Get.to если контекст недоступен
+          // Fallback to Get.to if context is unavailable
           Get.to(() => RoomViewUI(roomSecret: id), preventDuplicates: false);
         }
       } catch (e) {
@@ -397,28 +397,28 @@ class AppState with ChangeNotifier {
     }
   }
 
-  // Метод для проверки и обработки initialPush после готовности UI
+  // Method to check and handle initialPush after UI is ready
   void checkAndHandleInitialPush() {
     if (initialPush != null && initialPush!.isNotEmpty) {
       debugPrint('Processing initialPush: $initialPush');
       String urlToProcess = initialPush!;
-      initialPush = null; // Очищаем чтобы не обрабатывать повторно
+      initialPush = null; // Clear to avoid processing again
 
-      // Небольшая задержка для уверенности что UI готов
+      // Small delay to ensure UI is ready
       Future.delayed(Duration(milliseconds: 500), () {
         handleMessage(urlToProcess);
       });
     }
   }
 
-  // Метод для проверки и обработки initialUri после готовности UI
+  // Method to check and handle initialUri after UI is ready
   void checkAndHandleInitialUri() {
     if (initialUri != null && initialUri!.isNotEmpty) {
       debugPrint('Processing initialUri: $initialUri');
       String uriToProcess = initialUri!;
-      initialUri = null; // Очищаем чтобы не обрабатывать повторно
+      initialUri = null; // Clear to avoid processing again
 
-      // Небольшая задержка для уверенности что UI готов
+      // Small delay to ensure UI is ready
       Future.delayed(Duration(milliseconds: 700), () {
         try {
           Uri uri = Uri.parse(uriToProcess);
@@ -440,7 +440,7 @@ class AppState with ChangeNotifier {
         debugPrint('initialLink: $initUri');
         initialUri = initUri.toString();
 
-        // Сохраняем для обработки после готовности UI
+        // Save for processing after UI is ready
         debugPrint('Saved initialUri for later processing: $initialUri');
       }
 

@@ -148,6 +148,9 @@ class _LoginState extends State<LoginUI> {
                   },
                 ),
               ),
+              InfoUI(
+                  text: 'Enter your email and password to register or login'
+                      .ii()),
               Container(
                 height: 10,
               ),
@@ -194,6 +197,10 @@ class _LoginState extends State<LoginUI> {
                           },
                         ),
                       ),
+                      InfoUI(
+                          text:
+                              'Google login may not work due to verification procedure'
+                                  .ii()),
                       Visibility(
                         visible: false, //Platform.isAndroid,
                         child: SignInButton(
@@ -353,7 +360,7 @@ class _LoginState extends State<LoginUI> {
       }
 
       debugPrint("Google user: ${user.email}");
-      debugPrint("ID Token получен: ${idToken.substring(0, 30)}...");
+      debugPrint("ID Token received: ${idToken.substring(0, 30)}...");
 
       String? email = user.email;
       var displayName = user.displayName;
@@ -387,13 +394,13 @@ class _LoginState extends State<LoginUI> {
         Navigator.pushReplacement(
             context, CupertinoPageRoute(builder: (_) => HomeUI()));
       } else {
-        String err = res['err']?.toString() ?? "Что-то пошло не так!";
+        String err = res['err']?.toString() ?? "Something went wrong!";
         throw Exception(err);
       }
     } catch (e) {
       if (mounted) {
         String errorMessage = e.toString();
-        // Улучшаем сообщения об ошибках для пользователя
+        // Improve error messages for user
         if (errorMessage.contains("network_error") ||
             errorMessage.contains("NetworkError")) {
           errorMessage = "Network error. Check your internet connection.";
@@ -466,10 +473,10 @@ class _LoginState extends State<LoginUI> {
         debugPrint("resp=" + response.body.toString());
         var res = jsonDecode(response.body.toString());
 
-        // тут могут быть 3 варианта
-        // clientId == 0 - это значит что неверно введен логин или пароль
-        // сclientId>0 и dict пустой , надо переходить на WelcomeUI
-        // clientId>0 и dict не пустой , надо переходить на HomeUI
+        // There can be 3 options here:
+        // clientId == 0 - means incorrect login or password
+        // clientId>0 and dict is empty - need to go to WelcomeUI
+        // clientId>0 and dict is not empty - need to go to HomeUI
         final state = Provider.of<AppState>(context, listen: false);
         await state.tryToAuth();
         if (state.clientId > 0) {

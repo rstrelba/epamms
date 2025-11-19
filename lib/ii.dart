@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Централизованный список поддерживаемых языков
+// Centralized list of supported languages
 class SupportedLanguages {
   static const List<Map<String, String>> languages = [
     {
@@ -227,7 +227,7 @@ class TranslationService {
     return result;
   }
 
-  // Генерируем оптимальный ключ для английской фразы
+  // Generate optimal key for English phrase
   String _generateKey(String text) {
     // for short strings use the text itself as a key
     if (text.length <= 32) {

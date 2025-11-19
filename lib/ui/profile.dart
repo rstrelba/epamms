@@ -180,7 +180,7 @@ class _ProfileState extends State<ProfileUI> {
                 errorText: (profile['phone'] != null &&
                         profile['phone'].toString().length != 9 &&
                         profile['phone'].toString().isNotEmpty)
-                    ? 'Enter 9 digits'
+                    ? 'Enter 9 digits'.ii()
                     : null,
               ),
             ),
@@ -506,7 +506,7 @@ class _ProfileState extends State<ProfileUI> {
     try {
       await API.putProfile(profile);
       if (!mounted) return;
-      showSnackBar(context, 'Profile saved');
+      showSnackBar(context, 'Profile saved'.ii());
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => HomeUI()),
@@ -550,7 +550,7 @@ class _ProfileState extends State<ProfileUI> {
       child: profile['photo'].toString().isNotEmpty
           ? Dismissible(
               key: Key(
-                  'selfie_${profile['photo']}'), // Уникальный ключ с URL фото
+                  'selfie_${profile['photo']}'), // Unique key with photo URL
               onDismissed: ((direction) async {
                 await API.delPhoto();
                 setState(() {
@@ -558,7 +558,7 @@ class _ProfileState extends State<ProfileUI> {
                   //profile['selfiePath'] = null;
                 });
                 if (!mounted) return;
-                showSnackBar(context, 'Photo deleted successfully');
+                showSnackBar(context, 'Photo deleted successfully'.ii());
               }),
               confirmDismiss: ((direction) async {
                 return await showYesNoDialog(context, 'Delete selfie?'.ii());
@@ -607,7 +607,7 @@ class _ProfileState extends State<ProfileUI> {
         source: ImageSource.camera,
         maxWidth: 300,
         maxHeight: 300,
-        imageQuality: 95,
+        imageQuality: 100,
         preferredCameraDevice: CameraDevice.front,
       );
       if (image == null) return;
@@ -627,21 +627,26 @@ class _ProfileState extends State<ProfileUI> {
         });
 
         if (!mounted) return;
-        showSnackBar(context, 'Photo saved successfully');
+        showSnackBar(context, 'Photo saved successfully'.ii());
       } catch (e) {
         if (mounted) {
-          showErrSnackBar(context, 'Error saving photo: ${e.toString()}');
+          showErrSnackBar(
+              context, 'Error saving photo'.ii() + ': ${e.toString()}');
         }
         return;
       }
 
       if (!mounted) return;
       setState(() {
-        profile['photo'] = API.dbPhotoUrl + profile['id'].toString();
+        profile['photo'] = API.dbPhotoUrl +
+            profile['id'].toString() +
+            '&rnd=' +
+            DateTime.now().millisecondsSinceEpoch.toString();
       });
     } catch (e) {
       if (mounted) {
-        showErrSnackBar(context, 'Error taking selfie: ${e.toString()}');
+        showErrSnackBar(
+            context, 'Error taking selfie'.ii() + ': ${e.toString()}');
       }
     }
   }
@@ -658,11 +663,11 @@ class _ProfileState extends State<ProfileUI> {
             try {
               await API.delWishlist(item['id']);
               if (!mounted) return;
-              showSnackBar(context, 'Wishlist deleted successfully');
+              showSnackBar(context, 'Wishlist deleted successfully'.ii());
             } catch (e) {
               if (mounted) {
                 showErrSnackBar(
-                    context, 'Error deleting wish: ${e.toString()}');
+                    context, 'Error deleting wish'.ii() + ': ${e.toString()}');
               }
               return; // Don't remove from UI if API returned an error
             }

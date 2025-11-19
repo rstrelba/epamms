@@ -34,7 +34,7 @@ void main() async {
   try {
     debugPrint('Starting Firebase initialization...');
 
-    // Используем правильную конфигурацию Firebase для всех платформ
+    // Use proper Firebase configuration for all platforms
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );

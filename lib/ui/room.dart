@@ -158,12 +158,11 @@ class _RoomState extends State<RoomUI> {
                 Text('Public'.ii())
               ],
             ),
-            Text('Public rooms available for all users'.ii(),
-                style: TextStyle(fontSize: 12)),
-            Text(
-                'Private rooms available for only invited users (by link or qr code)'
-                    .ii(),
-                style: TextStyle(fontSize: 12)),
+            InfoUI(text: 'Public rooms available for all users'.ii()),
+            InfoUI(
+                text:
+                    'Private rooms available for only invited users (by link or qr code)'
+                        .ii()),
             TextField(
                 //autofocus: true,
                 controller: _titleController,
@@ -247,14 +246,13 @@ class _RoomState extends State<RoomUI> {
                     foregroundColor: Colors.white,
                     elevation: 4,
                   ),
-                  onPressed: () {
-                    _doRandomize(
-                        context); // TODO: Implement AI suggestion logic here
+                  onPressed: () async {
+                    _doRandomize(context);
                   },
                   icon: Icon(Icons.admin_panel_settings_outlined,
                       size: 32), // Gemini-like sparkle
                   label: Padding(
-                    padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                    padding: const EdgeInsets.only(left: 12.0, right: 12.0),
                     child: Text(
                       'Randomize room!',
                       style:
@@ -266,8 +264,7 @@ class _RoomState extends State<RoomUI> {
             ),
             SizedBox(height: 20),
             _buildRecipients(context),
-            Text('*Swipe right to remove recipient from room'.ii(),
-                style: TextStyle(fontSize: 12)),
+            InfoUI(text: 'Swipe right to remove recipient from room'.ii()),
           ],
         ),
       ),
@@ -354,8 +351,8 @@ class _RoomState extends State<RoomUI> {
               });
             },
             confirmDismiss: (direction) async {
-              return await showYesNoDialog(context, 'Are you sure to remove this recipient?'.ii());
-             
+              return await showYesNoDialog(
+                  context, 'Are you sure to remove this recipient?'.ii());
             },
             child: GestureDetector(
               onTap: () {
@@ -392,11 +389,19 @@ class _RoomState extends State<RoomUI> {
 
   void _doRandomize(context) async {
     try {
+      if (!await showYesNoDialog(
+          context, 'Are you sure to randomize the room?'.ii())) {
+        return;
+      }
+
       if (clientsCount < 2) {
         showErrSnackBar(context,
             "You need at least 2 participants to randomize the room!".ii());
         return;
       }
+      setState(() {
+        _isLoading = true;
+      });
       final res = await API.doRandomize(roomId);
       if (!mounted) return;
       if (res['error'] != null) {
@@ -406,6 +411,11 @@ class _RoomState extends State<RoomUI> {
       showSnackBar(context, "Room randomized successfully!".ii());
     } catch (e) {
       showErrSnackBar(context, e.toString());
+    } finally {
+      setState(() {
+        _isLoading = false;
+        isRandomized = true;
+      });
     }
   }
 

@@ -34,7 +34,7 @@ class _HomeState extends State<HomeUI> {
   GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
   FirebaseAnalytics? _analytics;
 
-  // Безопасный геттер для FirebaseAnalytics
+  // Safe getter for FirebaseAnalytics
   FirebaseAnalytics? get analytics {
     try {
       _analytics ??= FirebaseAnalytics.instance;
@@ -45,7 +45,7 @@ class _HomeState extends State<HomeUI> {
     }
   }
 
-  GlobalKey buttonKey = GlobalKey(); // Ключ для кнопки
+  GlobalKey buttonKey = GlobalKey(); // Key for button
   bool searchVisible = false;
   String sortMode = 'last';
 
@@ -82,7 +82,7 @@ class _HomeState extends State<HomeUI> {
       try {
         _load();
 
-        // Проверяем и обрабатываем initialPush и initialUri после загрузки
+        // Check and handle initialPush and initialUri after loading
         var state = Provider.of<AppState>(context, listen: false);
         state.checkAndHandleInitialPush();
         state.checkAndHandleInitialUri();
