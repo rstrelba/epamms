@@ -176,7 +176,7 @@ class _LoginState extends State<LoginUI> {
                           child: const CircularProgressIndicator()),
                       Container(height: 20),
                       Visibility(
-                        visible: GetPlatform.isIOS,
+                        visible: false, //GetPlatform.isIOS,
                         child: SignInButton(
                           appState.themeMode == ThemeMode.dark
                               ? Buttons.AppleDark
@@ -187,7 +187,7 @@ class _LoginState extends State<LoginUI> {
                         ),
                       ),
                       Visibility(
-                        visible: true, //GetPlatform.isAndroid,
+                        visible: false, //GetPlatform.isAndroid,
                         child: SignInButton(
                           appState.themeMode == ThemeMode.dark
                               ? Buttons.GoogleDark
@@ -197,10 +197,13 @@ class _LoginState extends State<LoginUI> {
                           },
                         ),
                       ),
-                      InfoUI(
-                          text:
-                              'Google login may not work due to verification procedure'
-                                  .ii()),
+                      Visibility(
+                        visible: false,
+                        child: InfoUI(
+                            text:
+                                'Google login may not work due to verification procedure'
+                                    .ii()),
+                      ),
                       Visibility(
                         visible: false, //Platform.isAndroid,
                         child: SignInButton(
