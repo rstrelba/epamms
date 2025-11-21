@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_app_installations/firebase_app_installations.dart';
 //import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -20,6 +21,7 @@ class API {
 
   static var info = "info";
   static String appVersion = "";
+  static String device = "";
   static String sToken = "";
   static String fcmToken = "";
   static String lang = "";
@@ -81,7 +83,13 @@ class API {
   static Future<String> _retryGettingToken() async {
     try {
       API.log('Retry getting token');
-      await FirebaseMessaging.instance.deleteToken();
+      try {
+        await FirebaseMessaging.instance.deleteToken();
+      } on Exception catch (e) {
+        API.log('Firebase delete token error: ' + e.toString());
+      }
+      await FirebaseInstallations.instance.delete();
+      API.log('Firebase Installation ID deleted. Starting fresh.');
       fcmToken = "";
       await Future.delayed(const Duration(seconds: 2));
       fcmToken = await FirebaseMessaging.instance.getToken() ?? "none";
@@ -104,6 +112,7 @@ class API {
           response.statusCode.toString());
     }
     debugPrint("Response= ${response.body}");
+    
     final result = jsonDecode(response.body);
     debugPrint("Result= $result");
     if (result is Map) if (result.containsKey('err')) {
@@ -141,10 +150,12 @@ class API {
   }
 
   static Future log(String log) async {
-    return queryBackend("log.php", {
-      "stoken": await getToken(),
-      "log": log + "|" + await getDeviceName() + "|" + appVersion
-    });
+    if (device.length == 0) {
+      device = await getDeviceName();
+    }
+
+    return queryBackend(
+        "log.php", {"device": device, "appVersion": appVersion, "log": log});
   }
 
   static Future loginWith(Map params) async {
