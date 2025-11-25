@@ -11,6 +11,7 @@ import 'package:flutter_exif_rotation/flutter_exif_rotation.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../api.dart';
 import 'home.dart';
@@ -123,222 +124,225 @@ class _ProfileState extends State<ProfileUI> {
   }
 
   Widget _buildProfile(context) {
-    if (isLoading) return Center(child: CircularProgressIndicator());
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AbsorbPointer(
-            absorbing: isReadOnly,
-            child: TextFormField(
-                //autofocus: true,
+    //if (isLoading) return Center(child: CircularProgressIndicator());
+    return Skeletonizer(
+      enabled: isLoading,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AbsorbPointer(
+              absorbing: isReadOnly,
+              child: TextFormField(
+                  //autofocus: true,
+                  onChanged: (value) {
+                    wasEdited = true;
+                    profile['name1'] = value;
+                  },
+                  initialValue: profile['name1'],
+                  decoration: InputDecoration(
+                    labelText: 'First name'.ii(),
+                    isDense: true,
+                    contentPadding:
+                        EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+                  )),
+            ),
+            AbsorbPointer(
+              absorbing: isReadOnly,
+              child: TextFormField(
+                  onChanged: (value) {
+                    wasEdited = true;
+                    profile['name2'] = value;
+                  },
+                  initialValue: profile['name2'],
+                  decoration: InputDecoration(
+                    labelText: 'Second name'.ii(),
+                    isDense: true,
+                    contentPadding:
+                        EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+                  )),
+            ),
+            AbsorbPointer(
+              absorbing: isReadOnly,
+              child: TextFormField(
+                keyboardType: TextInputType.number,
+                maxLength: 9,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 onChanged: (value) {
                   wasEdited = true;
-                  profile['name1'] = value;
+                  profile['phone'] = value;
                 },
-                initialValue: profile['name1'],
+                initialValue: profile['phone'],
                 decoration: InputDecoration(
-                  labelText: 'First name'.ii(),
+                  prefixText: '+380 ',
+                  counterText: '',
+                  labelText: 'Phone number'.ii(),
                   isDense: true,
                   contentPadding:
                       EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
-                )),
-          ),
-          AbsorbPointer(
-            absorbing: isReadOnly,
-            child: TextFormField(
-                onChanged: (value) {
-                  wasEdited = true;
-                  profile['name2'] = value;
-                },
-                initialValue: profile['name2'],
-                decoration: InputDecoration(
-                  labelText: 'Second name'.ii(),
-                  isDense: true,
-                  contentPadding:
-                      EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
-                )),
-          ),
-          AbsorbPointer(
-            absorbing: isReadOnly,
-            child: TextFormField(
-              keyboardType: TextInputType.number,
-              maxLength: 9,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              onChanged: (value) {
-                wasEdited = true;
-                profile['phone'] = value;
-              },
-              initialValue: profile['phone'],
-              decoration: InputDecoration(
-                prefixText: '+380 ',
-                counterText: '',
-                labelText: 'Phone number'.ii(),
-                isDense: true,
-                contentPadding:
-                    EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
-                errorText: (profile['phone'] != null &&
-                        profile['phone'].toString().length != 9 &&
-                        profile['phone'].toString().isNotEmpty)
-                    ? 'Enter 9 digits'.ii()
+                  errorText: (profile['phone'] != null &&
+                          profile['phone'].toString().length != 9 &&
+                          profile['phone'].toString().isNotEmpty)
+                      ? 'Enter 9 digits'.ii()
+                      : null,
+                ),
+              ),
+            ),
+            Text('Sex'.ii()),
+            AbsorbPointer(
+              absorbing: isReadOnly,
+              child: DropdownButtonFormField(
+                items: sex
+                    .map((item) => DropdownMenuItem(
+                        child: Text(item['name']), value: item['id']))
+                    .toList(),
+                initialValue: sex.any((item) => item['id'] == profile['sex'])
+                    ? profile['sex']
                     : null,
-              ),
-            ),
-          ),
-          Text('Sex'.ii()),
-          AbsorbPointer(
-            absorbing: isReadOnly,
-            child: DropdownButtonFormField(
-              items: sex
-                  .map((item) => DropdownMenuItem(
-                      child: Text(item['name']), value: item['id']))
-                  .toList(),
-              initialValue: sex.any((item) => item['id'] == profile['sex'])
-                  ? profile['sex']
-                  : null,
-              onChanged: (value) {
-                wasEdited = true;
-                profile['sex'] = value;
-              },
-            ),
-          ),
-          AbsorbPointer(
-            absorbing: isReadOnly,
-            child: DropdownButtonFormField<String>(
-              items: languages
-                  .map((item) => DropdownMenuItem<String>(
-                      child: Text(item['nativeName']?.toString() ??
-                          item['name']?.toString() ??
-                          ''),
-                      value: item['code']?.toString()))
-                  .where((item) => item.value != null)
-                  .toList(),
-              value: languages.any((item) =>
-                      item['code']?.toString() == profile['lang']?.toString())
-                  ? profile['lang']?.toString()
-                  : null,
-              onChanged: (value) {
-                wasEdited = true;
-                if (value != null) {
-                  profile['lang'] = value;
-                }
-              },
-              decoration: InputDecoration(
-                labelText: 'Language'.ii(),
-                isDense: true,
-                contentPadding:
-                    EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
-              ),
-            ),
-          ),
-          SizedBox(height: 10),
-          AbsorbPointer(
-            absorbing: isReadOnly,
-            child: TextFormField(
-              keyboardType: TextInputType.number,
-              maxLength: 4,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              onChanged: (value) {
-                wasEdited = true;
-                profile['year'] = value;
-              },
-              initialValue: profile['year'].toString(),
-              decoration: InputDecoration(
-                labelText: 'Year of birth'.ii(),
-                isDense: true,
-                contentPadding:
-                    EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
-              ),
-            ),
-          ),
-          SizedBox(height: 10),
-          AbsorbPointer(
-            absorbing: isReadOnly,
-            child: TextFormField(
-              onChanged: (value) {
-                wasEdited = true;
-                profile['hobby'] = value;
-              },
-              initialValue: profile['hobby'],
-              decoration: InputDecoration(
-                labelText: 'Hobby'.ii(),
-              ),
-            ),
-          ),
-          Text('Delivery service'.ii()),
-          AbsorbPointer(
-            absorbing: isReadOnly,
-            child: DropdownButtonFormField(
-              isExpanded: true,
-              items: delService
-                  .map((item) => DropdownMenuItem(
-                      child: Text(item['name']), value: item['id']))
-                  .toList(),
-              initialValue: profile['delService'] != null &&
-                      profile['delService'].toString().isNotEmpty &&
-                      delService
-                          .any((item) => item['id'] == profile['delService'])
-                  ? profile['delService']
-                  : null,
-              onChanged: (value) async {
-                try {
+                onChanged: (value) {
                   wasEdited = true;
-                  setState(() {
-                    isLoadingNP = true;
-                  });
-                  debugPrint('delService: ${value}');
-                  profile['delService'] = value;
-                  if (profile['delService'] == 2 &&
-                      profile['npWh'] != null &&
-                      profile['npWh'].toString().isNotEmpty) {
-                    await _loadNPData();
-                  }
-                } on Exception catch (_) {
-                  // TODO: handle exception
-                } finally {
-                  setState(() {
-                    isLoadingNP = false;
-                  });
-                }
-              },
+                  profile['sex'] = value;
+                },
+              ),
             ),
-          ),
-          SizedBox(height: 10),
-          if (profile['delService'] == 1) _buildUkrPoshta(context),
-          if (profile['delService'] == 2) _buildNovaPoshta(context),
-          SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text('Selfie? '.ii()),
-              Text('😉', style: TextStyle(fontSize: 28)),
-            ],
-          ),
-          _buildSelfie(context),
-          Center(
-              child: InfoUI(
-            text: 'Tap to take a selfie'.ii(),
-          )),
-          Center(
-              child: InfoUI(
-            text: 'Swipe right to delete selfie'.ii(),
-          )),
-          SizedBox(height: 10),
-          Divider(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text('My wishlist'.ii()),
-              Text('🎁', style: TextStyle(fontSize: 28)),
-            ],
-          ),
-          _buildWishlist(context),
-          Divider(),
-          SizedBox(height: 80),
-        ],
+            AbsorbPointer(
+              absorbing: isReadOnly,
+              child: DropdownButtonFormField<String>(
+                items: languages
+                    .map((item) => DropdownMenuItem<String>(
+                        child: Text(item['nativeName']?.toString() ??
+                            item['name']?.toString() ??
+                            ''),
+                        value: item['code']?.toString()))
+                    .where((item) => item.value != null)
+                    .toList(),
+                value: languages.any((item) =>
+                        item['code']?.toString() == profile['lang']?.toString())
+                    ? profile['lang']?.toString()
+                    : null,
+                onChanged: (value) {
+                  wasEdited = true;
+                  if (value != null) {
+                    profile['lang'] = value;
+                  }
+                },
+                decoration: InputDecoration(
+                  labelText: 'Language'.ii(),
+                  isDense: true,
+                  contentPadding:
+                      EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            AbsorbPointer(
+              absorbing: isReadOnly,
+              child: TextFormField(
+                keyboardType: TextInputType.number,
+                maxLength: 4,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onChanged: (value) {
+                  wasEdited = true;
+                  profile['year'] = value;
+                },
+                initialValue: profile['year'].toString(),
+                decoration: InputDecoration(
+                  labelText: 'Year of birth'.ii(),
+                  isDense: true,
+                  contentPadding:
+                      EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            AbsorbPointer(
+              absorbing: isReadOnly,
+              child: TextFormField(
+                onChanged: (value) {
+                  wasEdited = true;
+                  profile['hobby'] = value;
+                },
+                initialValue: profile['hobby'],
+                decoration: InputDecoration(
+                  labelText: 'Hobby'.ii(),
+                ),
+              ),
+            ),
+            Text('Delivery service'.ii()),
+            AbsorbPointer(
+              absorbing: isReadOnly,
+              child: DropdownButtonFormField(
+                isExpanded: true,
+                items: delService
+                    .map((item) => DropdownMenuItem(
+                        child: Text(item['name']), value: item['id']))
+                    .toList(),
+                initialValue: profile['delService'] != null &&
+                        profile['delService'].toString().isNotEmpty &&
+                        delService
+                            .any((item) => item['id'] == profile['delService'])
+                    ? profile['delService']
+                    : null,
+                onChanged: (value) async {
+                  try {
+                    wasEdited = true;
+                    setState(() {
+                      isLoadingNP = true;
+                    });
+                    debugPrint('delService: ${value}');
+                    profile['delService'] = value;
+                    if (profile['delService'] == 2 &&
+                        profile['npWh'] != null &&
+                        profile['npWh'].toString().isNotEmpty) {
+                      await _loadNPData();
+                    }
+                  } on Exception catch (_) {
+                    // TODO: handle exception
+                  } finally {
+                    setState(() {
+                      isLoadingNP = false;
+                    });
+                  }
+                },
+              ),
+            ),
+            SizedBox(height: 10),
+            if (profile['delService'] == 1) _buildUkrPoshta(context),
+            if (profile['delService'] == 2) _buildNovaPoshta(context),
+            SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text('Selfie? '.ii()),
+                Text('😉', style: TextStyle(fontSize: 28)),
+              ],
+            ),
+            _buildSelfie(context),
+            Center(
+                child: InfoUI(
+              text: 'Tap to take a selfie'.ii(),
+            )),
+            Center(
+                child: InfoUI(
+              text: 'Swipe right to delete selfie'.ii(),
+            )),
+            SizedBox(height: 10),
+            Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text('My wishlist'.ii()),
+                Text('🎁', style: TextStyle(fontSize: 28)),
+              ],
+            ),
+            _buildWishlist(context),
+            Divider(),
+            SizedBox(height: 80),
+          ],
+        ),
       ),
     );
   }
@@ -571,7 +575,9 @@ class _ProfileState extends State<ProfileUI> {
                     child: SizedBox(
                       width: 300,
                       height: 300,
-                      child: Image.network(profile['photo'], fit: BoxFit.cover),
+                      child: profile['photo'] != null
+                          ? Image.network(profile['photo'], fit: BoxFit.cover)
+                          : SizedBox.shrink(),
                     ),
                   ),
                 ),

@@ -4,6 +4,7 @@
 
 ### Homepage: *https://mysterioussanta.afisha.news/*
 ### Google play: *https://play.google.com/apps/testing/news.afisha.mysterioussanta*
+### App Store testflight: *https://testflight.apple.com/join/RezHQ5PS*
 
 
 ## 📱 Опис проекта
