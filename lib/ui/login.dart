@@ -187,7 +187,7 @@ class _LoginState extends State<LoginUI> {
                         ),
                       ),
                       Visibility(
-                        visible: false, //GetPlatform.isAndroid,
+                        visible: GetPlatform.isAndroid,
                         child: SignInButton(
                           appState.themeMode == ThemeMode.dark
                               ? Buttons.GoogleDark

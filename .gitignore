@@ -45,3 +45,5 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/mysterious-santa-86ca1a1a3280.json
+

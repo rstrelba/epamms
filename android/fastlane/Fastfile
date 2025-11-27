@@ -1,0 +1,54 @@
+default_platform(:android)
+
+platform :android do
+
+  desc "Upload AAB to Google Play"
+  lane :upload do
+
+    # Fastlane выполняется из android/, поэтому нужно подняться на 2 уровня
+    fastlane_dir = Dir.pwd
+    project_root = File.expand_path("../..", fastlane_dir)
+    pubspec_path = File.join(project_root, "pubspec.yaml")
+    
+    UI.message "Fastlane dir: #{fastlane_dir}"
+    UI.message "Project root: #{project_root}"
+    UI.message "Pubspec path: #{pubspec_path}"
+    
+    pubspec_content = File.read(pubspec_path)
+    version_match = pubspec_content.match(/version:\s*(\d+\.\d+\.\d+)\+(\d+)/)
+    
+    if version_match
+      version_number = version_match[1]
+      current_build = version_match[2].to_i
+      new_build = current_build + 1
+      
+      UI.message "Current version: #{version_number}+#{current_build}"
+      UI.message "New version: #{version_number}+#{new_build}"
+      
+      new_content = pubspec_content.gsub(/version:\s*\d+\.\d+\.\d+\+\d+/, "version: #{version_number}+#{new_build}")
+      File.write(pubspec_path, new_content)
+      
+      UI.success "Build number incremented to #{new_build}!"
+      
+      Dir.chdir(project_root) do
+        sh "flutter pub get"
+        sh "flutter build aab"
+      end
+      
+      UI.success "AAB build completed successfully!"
+    else
+      UI.error "Could not find version line in pubspec.yaml!"
+      raise "Expected format: version: x.y.z+buildNumber"
+    end
+
+    upload_to_play_store(
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      track: "beta",    # internal | alpha | beta | production
+      skip_upload_metadata: true,
+      skip_upload_changelogs: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+end
